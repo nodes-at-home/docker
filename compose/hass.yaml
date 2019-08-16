@@ -1,0 +1,96 @@
+###
+### junand 12.08.2019
+###
+
+version: "3.3"
+
+networks:
+
+  mosquitto-net:
+  influxdb-net:
+  monitoring_prometheus-net:
+    external: true
+  
+services:
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: "no"
+    volumes:
+      - "~/docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf"
+      - "~/docker/mosquitto/data:/mosquitto/data"
+      - "~/docker/mosquitto/log:/mosquitto/log"
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    networks:
+      - mosquitto-net
+      
+  influxdb:
+    image: influxdb
+    container_name: influxdb
+    restart: "no"
+    volumes:
+      - "~/docker/influxdb:/var/lib/influxdb"
+    ports:
+      - "8086:8086"
+    networks:
+      - influxdb-net
+      
+  hass:
+    image: homeassistant/raspberrypi3-homeassistant
+    container_name: hass
+    restart: "no"
+    depends_on:
+      - mosquitto
+      - influxdb
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "~/docker/home-assistant:/config"
+    ports:
+      - "8123:8123"
+    networks:
+      - mosquitto-net
+      - influxdb-net
+      
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: "no"
+    depends_on:
+      - influxdb
+    volumes:
+      - "~/docker/grafana:/var/lib/grafana"
+    ports:
+      - "3000:3000"
+    networks:
+      - influxdb-net
+      - monitoring_prometheus-net
+      
+  nginx:
+    image: tobi312/rpi-nginx
+    container_name: nginx
+    restart: "no"
+    volumes:
+      - "~/docker/nginx:/usr/share/nginx/html"
+      - "~/docker/nginx/log:/var/log/nginx"
+      - "~/docker/nginx/nginx.conf:/etc/nginx/nginx.conf"
+    ports:
+      - "80:80"
+
+  nodered:
+    image: nodered/node-red-docker:rpi
+    container_name: nodered
+    restart: "no"
+    volumes:
+      - "/etc/timezone:/etc/timezone:ro"
+      - "~/docker/nodered:/data"
+      - "~/docker/nginx:/var/www/html"
+      - "~/GIT/brewery/recipes:/data/recipes" 
+      - "~/GIT/nodered/mp3:/data/mp3"
+    ports:
+      - "1880:1880"
+    networks:
+      - mosquitto-net
+      - influxdb-net

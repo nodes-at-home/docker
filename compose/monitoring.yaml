@@ -45,6 +45,8 @@ services:
     command: "--collector.textfile.directory=/data"
     container_name: node-exporter
     restart: "no"
+    volumes:
+      - "/var/lib/node_exporter/textfile_collector:/data"
     ports:
       - "9100:9100"
     networks:

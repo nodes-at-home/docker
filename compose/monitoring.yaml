@@ -42,6 +42,7 @@ services:
       
   node-exporter:
     image: prom/node-exporter
+    command: "--collector.textfile.directory=/data"
     container_name: node-exporter
     restart: "unless-stopped"
     ports:

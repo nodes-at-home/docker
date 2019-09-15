@@ -16,7 +16,7 @@ services:
   mosquitto:
     image: eclipse-mosquitto
     container_name: mosquitto
-    restart: "unless-stopped"
+    restart: "no"
     volumes:
       - "~/docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf"
       - "~/docker/mosquitto/data:/mosquitto/data"
@@ -30,7 +30,7 @@ services:
   influxdb:
     image: influxdb
     container_name: influxdb
-    restart: "unless-stopped"
+    restart: "no"
     volumes:
       - "~/docker/influxdb:/var/lib/influxdb"
     ports:
@@ -41,7 +41,7 @@ services:
   hass:
     image: homeassistant/raspberrypi3-homeassistant
     container_name: hass
-    restart: "unless-stopped"
+    restart: "no"
     depends_on:
       - mosquitto
       - influxdb
@@ -57,7 +57,7 @@ services:
   grafana:
     image: grafana/grafana
     container_name: grafana
-    restart: "unless-stopped"
+    restart: "no"
     depends_on:
       - influxdb
     volumes:
@@ -71,7 +71,7 @@ services:
   nginx:
     image: tobi312/rpi-nginx
     container_name: nginx
-    restart: "unless-stopped"
+    restart: "no"
     volumes:
       - "~/docker/nginx:/usr/share/nginx/html"
       - "~/docker/nginx/log:/var/log/nginx"
@@ -82,7 +82,7 @@ services:
   nodered:
     image: nodered/node-red-docker:rpi
     container_name: nodered
-    restart: "unless-stopped"
+    restart: "no"
     volumes:
       - "/etc/timezone:/etc/timezone:ro"
       - "~/docker/nodered:/data"

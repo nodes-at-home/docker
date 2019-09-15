@@ -13,7 +13,7 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    restart: "unless-stopped"
+    restart: "no"
     depends_on:
       - cadvisor
       - node-exporter
@@ -28,7 +28,7 @@ services:
   cadvisor:
     image: budry/cadvisor-arm
     container_name: cadvisor
-    restart: "unless-stopped"
+    restart: "no"
     volumes:
       - "/:/rootfs:ro"
       - "/var/run:/var/run:rw"
@@ -44,7 +44,7 @@ services:
     image: prom/node-exporter
     command: "--collector.textfile.directory=/data"
     container_name: node-exporter
-    restart: "unless-stopped"
+    restart: "no"
     ports:
       - "9100:9100"
     networks:

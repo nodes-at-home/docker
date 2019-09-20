@@ -1,5 +1,5 @@
 #!/bin/bash
 
-docker-compose -p monitoring -f monitoring.yaml up -d
-docker-compose -p hass -f hass.yaml up -d
+docker-compose -p monitoring -f monitoring.yaml start
+docker-compose -p hass -f hass.yaml start
 

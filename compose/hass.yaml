@@ -80,7 +80,8 @@ services:
       - "80:80"
 
   nodered:
-    image: nodered/node-red-docker:rpi
+    ###image: nodered/node-red-docker:rpi
+    image: nodered/node-red-docker:0.20.7-rpi
     container_name: nodered
     restart: "no"
     volumes:

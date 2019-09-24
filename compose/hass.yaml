@@ -39,7 +39,7 @@ services:
       - influxdb-net
       
   hass:
-    image: homeassistant/raspberrypi3-homeassistant
+    image: homeassistant/raspberrypi3-homeassistant:stable
     container_name: hass
     restart: "no"
     depends_on:

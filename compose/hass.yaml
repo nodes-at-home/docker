@@ -45,6 +45,8 @@ services:
     depends_on:
       - mosquitto
       - influxdb
+    environment:
+      - PARENT_HOSTNAME=${HOSTNAME}
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "~/docker/home-assistant:/config"
@@ -84,12 +86,13 @@ services:
     image: nodered/node-red-docker:0.20.7-rpi
     container_name: nodered
     restart: "no"
+    environment:
+      - PARENT_HOSTNAME=${HOSTNAME}
     volumes:
       - "/etc/timezone:/etc/timezone:ro"
       - "~/docker/nodered:/data"
       - "~/docker/nginx:/var/www/html"
       - "~/GIT/brewery/recipes:/data/recipes" 
-      - "~/GIT/nodered/mp3:/data/mp3"
     ports:
       - "1880:1880"
     networks:

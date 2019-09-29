@@ -95,6 +95,7 @@ services:
       - "~/GIT/brewery/recipes:/data/recipes" 
     ports:
       - "1880:1880"
+      - "10001:10001"
     networks:
       - mosquitto-net
       - influxdb-net

@@ -85,13 +85,13 @@ services:
 
   nodered:
     ###image: nodered/node-red-docker:rpi
-    image: nodered/node-red-docker:0.20.7-rpi
+    image: nodered/node-red
     container_name: nodered
     restart: "no"
     environment:
+      - TZ=Europe/Berlin
       - PARENT_HOSTNAME=${HOSTNAME}
     volumes:
-      - "/etc/timezone:/etc/timezone:ro"
       - "~/docker/nodered:/data"
       - "~/docker/nginx:/var/www/html"
       - "~/GIT/brewery/recipes:/data/recipes" 

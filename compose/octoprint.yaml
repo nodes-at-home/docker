@@ -1,0 +1,24 @@
+###
+### junand 28.10.2019
+###
+
+version: "3.3"
+
+networks:
+
+  hass_nginx-net:
+    external: true
+
+services:
+
+  octoprint:
+    build: ../dockerfiles/octoprint
+    image: octoprint
+    container_name: octoprint
+    restart: "no"
+    volumes:
+      - "~/docker/octoprint:/data"
+    ports:
+      - "1337:80"
+    networks:
+      - hass_nginx-net

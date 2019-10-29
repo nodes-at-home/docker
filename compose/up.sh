@@ -2,4 +2,5 @@
 
 docker-compose -p monitoring -f monitoring.yaml up -d
 docker-compose -p hass -f hass.yaml up -d
+docker-compose -p octoprint -f octoprint.yaml up -d
 

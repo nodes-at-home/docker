@@ -8,6 +8,7 @@ networks:
 
   mosquitto-net:
   influxdb-net:
+  nginx-net:
   monitoring_prometheus-net:
     external: true
   
@@ -79,9 +80,11 @@ services:
       - "~/docker/nginx/nginx.conf:/etc/nginx/nginx.conf"
       - "~/docker/nginx/log:/var/log/nginx"
       - "~/docker/nginx/html:/usr/share/nginx/html"
-      - "~/docker/nginx/tileboard:/usr/share/nginx/html/tileboard"
+      - "~/docker/nginx/tileboard:/usr/share/nginx/tileboard"
     ports:
       - "80:80"
+    networks:
+      - nginx-net
 
   nodered:
     ###image: nodered/node-red-docker:rpi

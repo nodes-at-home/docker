@@ -8,7 +8,6 @@ networks:
 
   mosquitto-net:
   influxdb-net:
-  nginx-net:
   prometheus-net:
   
 services:
@@ -154,11 +153,7 @@ services:
     image: octoprint
     container_name: octoprint
     restart: "no"
-    depends_on:
-      - mosquitto
     volumes:
       - "~/docker/octoprint:/data"
     ports:
       - "1337:80"
-    networks:
-      - nginx-net

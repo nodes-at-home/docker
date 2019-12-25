@@ -149,7 +149,10 @@ services:
       - influxdb-net
 
   octoprint:
-    build: ./octoprint
+    build: 
+      context: ./octoprint
+      labels:
+        com.centurylinklabs.watchtower.enable: "false"
     image: octoprint
     container_name: octoprint
     restart: "no"

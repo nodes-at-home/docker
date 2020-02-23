@@ -139,7 +139,7 @@ services:
       - PARENT_HOSTNAME=${HOSTNAME}
     volumes:
       - "~/docker/nodered:/data"
-      - "~/docker/nginx:/var/www/html"
+      - "~/docker/nginx/html:/var/www/html"
       - "~/GIT/brewery/recipes:/data/recipes" 
     ports:
       - "1880:1880"

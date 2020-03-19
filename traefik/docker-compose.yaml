@@ -1,0 +1,50 @@
+###
+### junand 11.03.2020
+###
+
+version: '3.3'
+
+services:
+
+  traefik:
+    # The official v2 Traefik docker image
+    image: traefik:v2.2.0-rc2
+    container_name: traefik
+    restart: "no"
+    # labels:
+      # - "traefik.enable=true"
+    depends_on:
+      - mosquitto
+      - whoami
+    environment:
+      - TZ="Europe/Berlin"
+      - PARENT_HOSTNAME=${HOSTNAME}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "~/docker/docker/traefik/traefik.yaml:/etc/traefik/traefik.yml"
+      - "~/docker/docker/traefik/dynamic:/etc/traefik/dynamic"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+      - "1883:1883"
+
+  # A container that exposes an API to show its IP address
+  whoami:
+    image: containous/whoami
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.tls=false"
+      
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: "no"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.mqtt.tls=false"
+    volumes:
+      - "~/docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf"
+      - "~/docker/mosquitto/data:/mosquitto/data"
+      - "~/docker/mosquitto/log:/mosquitto/log"
+

@@ -1,0 +1,33 @@
+###
+### junand 14.03.2020
+###
+
+global:
+    checkNewVersion: true
+    sendAnonymousUsage: false
+    
+api:
+    insecure: true
+    dashboard: true
+    debug: false
+    
+providers:
+    file:
+        directory: /etc/traefik/dynamic
+        watch: true
+    docker:
+        watch: true
+        exposedByDefault: false
+    
+# später nach dynamic
+entryPoints:
+    web:
+        address: ":80"
+    websecure:
+        address: ":443"
+    mqtt:
+        address: ":1883"
+        
+log:
+    # ERROR, DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
+    level: DEBUG 

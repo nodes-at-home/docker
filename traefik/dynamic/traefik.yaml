@@ -1,0 +1,49 @@
+###
+### junand 14.03.2020
+###
+
+http:
+    routers:
+        # api:
+            # rule: Host(`traefik.pitest`)
+            # service: api@internal
+            # middlewares:
+              # - whitelist
+              
+        whoami:
+            entryPoints: 
+              - 'web'
+            # rule: Path(`/whoami`)
+            # rule: Host(`whoami.pitest`)
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`) && PathPrefix(`/whoami`)'
+            middlewares:
+              - onlysurface
+            service: whoami-traefik@docker
+            
+    middlewares:
+        auth:
+            basicAuth:
+                users:
+                  - "test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"
+                  - "test2:$apr1$d9hr9HBB$4HxwgUir3HP4EsggP/QNo0"
+        onlysurface:
+            ipWhiteList:
+                sourceRange:
+                  - 192.168.2.134/32
+
+tcp:
+    routers:
+        mosquitto:
+            entryPoints: 
+              - 'mqtt'
+            #rule: 'HostSNI(`pitest`)'
+            rule: HostSNI(`*`)
+            middlewares:
+              - pokemonnet
+            service: mosquitto-traefik@docker
+            
+    middlewares:
+        pokemonnet:
+            ipWhiteList:
+                sourceRange:
+                  - 192.168.2.0/24

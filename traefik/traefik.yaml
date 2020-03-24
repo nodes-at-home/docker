@@ -9,7 +9,7 @@ global:
 api:
     insecure: true
     dashboard: true
-    debug: false
+    debug: true
     
 providers:
     file:
@@ -19,14 +19,15 @@ providers:
         watch: true
         exposedByDefault: false
     
-# später nach dynamic
 entryPoints:
     web:
         address: ":80"
-    websecure:
+    web_secure:
         address: ":443"
     mqtt:
         address: ":1883"
+    mqtt_secure:
+        address: ":8883"
         
 log:
     # ERROR, DEBUG, PANIC, FATAL, ERROR, WARN, and INFO

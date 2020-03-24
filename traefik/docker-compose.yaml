@@ -23,23 +23,29 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - "~/docker/docker/traefik/traefik.yaml:/etc/traefik/traefik.yml"
       - "~/docker/docker/traefik/dynamic:/etc/traefik/dynamic"
+      - "~/docker/traefik/ssl:/etc/ssl/nodesathome"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
       - "1883:1883"
+      - "8883:8883"
 
   # A container that exposes an API to show its IP address
   whoami:
     image: containous/whoami
+    environment:
+      - TZ="Europe/Berlin"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.whoami.tls=false"
-      
+
   mosquitto:
     image: eclipse-mosquitto
     container_name: mosquitto
     restart: "no"
+    environment:
+      - TZ="Europe/Berlin"
     labels:
       - "traefik.enable=true"
       - "traefik.tcp.routers.mqtt.tls=false"

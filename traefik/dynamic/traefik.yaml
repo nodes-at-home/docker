@@ -2,25 +2,64 @@
 ### junand 14.03.2020
 ###
 
+tls:
+
+    # https://ssl-config.mozilla.org/#server=traefik&config=intermediate
+    # due to Go limitations, it is highly recommended that you use an ECDSA
+    # certificate, or you may experience compatibility issues    
+        
+    stores:
+        default:
+            defaultCertificate:
+                keyFile: /etc/ssl/nodesathome/certificate-key-{{ env "PARENT_HOSTNAME" }}.pem
+                certFile: /etc/ssl/nodesathome/certificate-pub-{{ env "PARENT_HOSTNAME" }}.pem
+        
+    options:
+        intermediate:
+            minVersion: "VersionTLS12"
+            cipherSuites:
+              - "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+              - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+              - "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+              - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+              - "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
+              - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+              
 http:
+
     routers:
-        # api:
+            # api:
             # rule: Host(`traefik.pitest`)
             # service: api@internal
             # middlewares:
               # - whitelist
-              
-        whoami:
+        web:
             entryPoints: 
               - 'web'
-            # rule: Path(`/whoami`)
-            # rule: Host(`whoami.pitest`)
-            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`) && PathPrefix(`/whoami`)'
+            rule: 'HostRegexp(`{any:.*}`)'
+            middlewares:
+              - web-redirect
+              # - hsts-header
+            service: redirect-all
+        whoami_ssl:
+            entryPoints: 
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) || Host(`192.168.2.16`) ) && PathPrefix(`/whoami`)'
             middlewares:
               - onlysurface
+              # - hsts-header
             service: whoami-traefik@docker
+            tls:
+                options: intermediate
             
     middlewares:
+        web-redirect:
+            redirectScheme:
+                scheme: https
+        hsts-header:
+            headers:
+                customResponseHeader:
+                    Strict-Transport-Security: "max-age=63072000"
         auth:
             basicAuth:
                 users:
@@ -30,17 +69,34 @@ http:
             ipWhiteList:
                 sourceRange:
                   - 192.168.2.134/32
+                  
+    services:
+        redirect-all:
+            loadBalancer:
+                servers:
+                  - url: ''
 
 tcp:
+
     routers:
         mosquitto:
             entryPoints: 
               - 'mqtt'
-            #rule: 'HostSNI(`pitest`)'
+            # rule: 'HostSNI(`{{ env "PARENT_HOSTNAME" }}`)'
             rule: HostSNI(`*`)
             middlewares:
               - pokemonnet
             service: mosquitto-traefik@docker
+        mosquitto_secure:
+            entryPoints:
+              - 'mqtt_secure'
+            rule: HostSNI(`*`)
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: mosquitto-traefik@docker
+            tls:
+                options: intermediate
             
     middlewares:
         pokemonnet:

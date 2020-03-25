@@ -28,11 +28,6 @@ tls:
 http:
 
     routers:
-            # api:
-            # rule: Host(`traefik.pitest`)
-            # service: api@internal
-            # middlewares:
-              # - whitelist
         web:
             entryPoints: 
               - 'web'
@@ -41,12 +36,24 @@ http:
               - web-redirect
               # - hsts-header
             service: redirect-all
-        whoami_ssl:
+        api:
             entryPoints: 
               - 'web_secure'
-            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) || Host(`192.168.2.16`) ) && PathPrefix(`/whoami`)'
+            # rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) || Host(`192.168.2.16`) ) && ( PathPrefix(`/api`) || PathPrefix(`/dashboard`) )'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && ( PathPrefix(`/api`) || PathPrefix(`/dashboard`) )'
+            service: api@internal
             middlewares:
-              - onlysurface
+              - pokemonnet
+            tls:
+                options: intermediate
+        whoami:
+            entryPoints: 
+              - 'web_secure'
+            # rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) || Host(`192.168.2.16`) ) && PathPrefix(`/whoami`)'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/whoami`)'
+            middlewares:
+              - pokemonnet
+              #- onlysurface
               # - hsts-header
             service: whoami-traefik@docker
             tls:
@@ -69,6 +76,10 @@ http:
             ipWhiteList:
                 sourceRange:
                   - 192.168.2.134/32
+        pokemonnet:
+            ipWhiteList:
+                sourceRange:
+                  - 192.168.2.0/24
                   
     services:
         redirect-all:

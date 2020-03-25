@@ -27,13 +27,15 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
+      #- "8080:8080"
       - "1883:1883"
       - "8883:8883"
 
   # A container that exposes an API to show its IP address
   whoami:
     image: containous/whoami
+    container_name: whoami
+    restart: "no"
     environment:
       - TZ="Europe/Berlin"
     labels:

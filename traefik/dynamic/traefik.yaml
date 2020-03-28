@@ -6,14 +6,14 @@ tls:
 
     # https://ssl-config.mozilla.org/#server=traefik&config=intermediate
     # due to Go limitations, it is highly recommended that you use an ECDSA
-    # certificate, or you may experience compatibility issues    
-        
+    # certificate, or you may experience compatibility issues
+
     stores:
         default:
             defaultCertificate:
                 keyFile: /etc/ssl/nodesathome/certificate-key-{{ env "PARENT_HOSTNAME" }}.pem
                 certFile: /etc/ssl/nodesathome/certificate-pub-{{ env "PARENT_HOSTNAME" }}.pem
-        
+
     options:
         intermediate:
             minVersion: "VersionTLS12"
@@ -24,20 +24,22 @@ tls:
               - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
               - "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
               - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
-              
+
 http:
 
     routers:
+
         web:
-            entryPoints: 
+            entryPoints:
               - 'web'
             rule: 'HostRegexp(`{any:.*}`)'
             middlewares:
               - web-redirect
               # - hsts-header
             service: redirect-all
+
         api:
-            entryPoints: 
+            entryPoints:
               - 'web_secure'
             rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && ( PathPrefix(`/api`) || PathPrefix(`/dashboard`) )'
             service: api@internal
@@ -47,7 +49,7 @@ http:
                 options: intermediate
 
         whoami:
-            entryPoints: 
+            entryPoints:
               - 'web_secure'
             rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/whoami`)'
             middlewares:
@@ -89,7 +91,7 @@ http:
             service: nodered-traefik@docker
             tls:
                 options: intermediate
-            
+
         hass:
             entryPoints:
               - 'hass'
@@ -155,6 +157,7 @@ http:
 tcp:
 
     routers:
+
         mosquitto:
             entryPoints: 
               - mqtt
@@ -163,6 +166,7 @@ tcp:
             middlewares:
               - pokemonnet
             service: mosquitto-traefik@docker
+
         mosquitto_secure:
             entryPoints:
               - mqtt_secure
@@ -173,6 +177,7 @@ tcp:
             service: mosquitto-traefik@docker
             tls:
                 options: intermediate
+
         trace:
             entryPoints:
               - trace
@@ -187,7 +192,7 @@ tcp:
             loadBalancer:
                 servers:
                   - address: nodered:10001
-            
+
     middlewares:
         pokemonnet:
             ipWhiteList:

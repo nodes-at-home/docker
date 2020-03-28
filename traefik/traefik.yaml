@@ -3,32 +3,59 @@
 ###
 
 global:
+
     checkNewVersion: true
     sendAnonymousUsage: false
-    
+
+tracing:
+
+    jaeger:
+        samplingServerURL: http://192.168.2.134:5778/sampling
+        samplingType: const
+        samplingParam: 1.0
+
 api:
+
     insecure: false
     dashboard: true
     debug: true
-    
+
 providers:
+
     file:
         directory: /etc/traefik/dynamic
         watch: true
+
     docker:
         watch: true
         exposedByDefault: false
-    
+
 entryPoints:
+
     web:
         address: ":80"
+
     web_secure:
         address: ":443"
+
     mqtt:
         address: ":1883"
+
     mqtt_secure:
         address: ":8883"
-        
+
+    trace:
+        address: ":10001"
+
+    hass:
+        address: ":8123"
+
+metrics:
+
+    prometheus:
+        addEntryPointsLabels: true
+        addServicesLabels: true
+
 log:
     # ERROR, DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
-    level: DEBUG 
+    level: DEBUG

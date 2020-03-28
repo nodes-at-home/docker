@@ -39,27 +39,92 @@ http:
         api:
             entryPoints: 
               - 'web_secure'
-            # rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) || Host(`192.168.2.16`) ) && ( PathPrefix(`/api`) || PathPrefix(`/dashboard`) )'
             rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && ( PathPrefix(`/api`) || PathPrefix(`/dashboard`) )'
             service: api@internal
             middlewares:
               - pokemonnet
             tls:
                 options: intermediate
+
         whoami:
             entryPoints: 
               - 'web_secure'
-            # rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) || Host(`192.168.2.16`) ) && PathPrefix(`/whoami`)'
             rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/whoami`)'
             middlewares:
               - pokemonnet
-              #- onlysurface
               # - hsts-header
             service: whoami-traefik@docker
             tls:
                 options: intermediate
+
+        nginx:
+            entryPoints:
+              - 'web_secure'
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: nginx-traefik@docker
+            tls:
+                options: intermediate
+
+        grafana:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/grafana`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: grafana-traefik@docker
+            tls:
+                options: intermediate
+
+        nodered:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/nodered`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: nodered-traefik@docker
+            tls:
+                options: intermediate
             
+        hass:
+            entryPoints:
+              - 'hass'
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            # service: hass-traefik@docker
+            service: hass@docker
+            tls:
+                options: intermediate
+
+        octoprint:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/octoprint`)'
+            middlewares:
+              - pokemonnet
+              - octoprint_headers
+              - octoprint_stripprefix
+              # - hsts-header
+            service: octoprint-traefik@docker
+            tls:
+                options: intermediate
+
     middlewares:
+        octoprint_headers:
+            headers:
+                customRequestHeaders:
+                    X-Script-Name: '/octoprint'
+        octoprint_stripprefix:
+            stripPrefix:
+                prefixes:
+                  - '/octoprint'
+                forceSlash: false
         web-redirect:
             redirectScheme:
                 scheme: https
@@ -80,7 +145,7 @@ http:
             ipWhiteList:
                 sourceRange:
                   - 192.168.2.0/24
-                  
+
     services:
         redirect-all:
             loadBalancer:
@@ -92,7 +157,7 @@ tcp:
     routers:
         mosquitto:
             entryPoints: 
-              - 'mqtt'
+              - mqtt
             # rule: 'HostSNI(`{{ env "PARENT_HOSTNAME" }}`)'
             rule: HostSNI(`*`)
             middlewares:
@@ -100,7 +165,7 @@ tcp:
             service: mosquitto-traefik@docker
         mosquitto_secure:
             entryPoints:
-              - 'mqtt_secure'
+              - mqtt_secure
             rule: HostSNI(`*`)
             middlewares:
               - pokemonnet
@@ -108,6 +173,20 @@ tcp:
             service: mosquitto-traefik@docker
             tls:
                 options: intermediate
+        trace:
+            entryPoints:
+              - trace
+            rule: HostSNI(`*`)
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: nodered-trace
+
+    services:
+        nodered-trace:
+            loadBalancer:
+                servers:
+                  - address: nodered:10001
             
     middlewares:
         pokemonnet:

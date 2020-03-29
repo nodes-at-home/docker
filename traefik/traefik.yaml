@@ -47,7 +47,10 @@ entryPoints:
     trace:
         address: ":10001"
 
-    hass:
+    trace_secure:
+        address: ":10002"
+
+    hass_secure:
         address: ":8123"
 
 metrics:

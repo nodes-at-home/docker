@@ -66,7 +66,7 @@ http:
             middlewares:
               - pokemonnet
               # - hsts-header
-            service: nginx-traefik@docker
+            service: nginx-nodesathome@docker
             tls:
                 options: intermediate
 
@@ -77,7 +77,7 @@ http:
             middlewares:
               - pokemonnet
               # - hsts-header
-            service: grafana-traefik@docker
+            service: grafana-metrics@docker
             tls:
                 options: intermediate
 
@@ -88,19 +88,18 @@ http:
             middlewares:
               - pokemonnet
               # - hsts-header
-            service: nodered-traefik@docker
+            service: nodered-nodesathome@docker
             tls:
                 options: intermediate
 
         hass:
             entryPoints:
-              - 'hass'
+              - 'hass_secure'
             rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
             middlewares:
               - pokemonnet
               # - hsts-header
-            # service: hass-traefik@docker
-            service: hass@docker
+            service: hass-nodesathome@docker
             tls:
                 options: intermediate
 
@@ -113,7 +112,7 @@ http:
               - octoprint_headers
               - octoprint_stripprefix
               # - hsts-header
-            service: octoprint-traefik@docker
+            service: octoprint-printer3d@docker
             tls:
                 options: intermediate
 
@@ -186,6 +185,17 @@ tcp:
               - pokemonnet
               # - hsts-header
             service: nodered-trace
+
+        trace_secure:
+            entryPoints:
+              - trace_secure
+            rule: HostSNI(`*`)
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: nodered-trace
+            tls:
+                options: intermediate
 
     services:
         nodered-trace:

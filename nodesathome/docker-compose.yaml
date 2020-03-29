@@ -1,133 +1,101 @@
 ###
-### junand 12.08.2019
+### junand 11.03.2020
 ###
 
-version: "3.3"
+# nodesathome/docker-compose.yaml
+
+version: '3.3'
 
 networks:
 
-  mosquitto-net:
-  influxdb-net:
-  prometheus-net:
-  
-services:
+  proxy:
+    external:
+        name: proxy
 
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    restart: "no"
-    depends_on:
-      - cadvisor
-      - node-exporter
-    volumes:
-      - "~/docker/prometheus/data:/prometheus"
-      - "~/docker/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml"
-    ports:
-      - "9090:9090"
-    networks:
-      - prometheus-net
-      
-  cadvisor:
-    image: budry/cadvisor-arm
-    container_name: cadvisor
-    restart: "no"
-    volumes:
-      - "/:/rootfs:ro"
-      - "/var/run:/var/run:rw"
-      - "/sys:/sys:ro"
-      - "/var/lib/docker/:/var/lib/docker:ro"
-      - "/dev/disk/:/dev/disk:ro"
-    ports:
-      - "8080:8080"
-    networks:
-      - prometheus-net
-      
-  node-exporter:
-    image: prom/node-exporter
-    command: "--collector.textfile.directory=/data"
-    container_name: node-exporter
-    restart: "no"
-    volumes:
-      - "/var/lib/node_exporter/textfile_collector:/data"
-    ports:
-      - "9100:9100"
-    networks:
-      - prometheus-net
+  backbone:
+    external:
+        name: backbone
+
+  metrics:
+    external:
+        name: metrics
+
+
+services:
 
   mosquitto:
     image: eclipse-mosquitto
     container_name: mosquitto
     restart: "no"
+    environment:
+      - TZ="Europe/Berlin"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.mqtt.tls=false"
+      - "traefik.docker.network=proxy"
     volumes:
       - "~/docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf"
       - "~/docker/mosquitto/data:/mosquitto/data"
       - "~/docker/mosquitto/log:/mosquitto/log"
-    ports:
-      - "1883:1883"
-      - "9001:9001"
     networks:
-      - mosquitto-net
-      
+      - proxy
+
   influxdb:
     image: influxdb
     container_name: influxdb
     restart: "no"
+    environment:
+      - TZ="Europe/Berlin"
+    labels:
+      - "traefik.enable=false"
     volumes:
       - "~/docker/influxdb:/var/lib/influxdb"
-    ports:
-      - "8086:8086"
     networks:
-      - influxdb-net
-      
+      - backbone
+      - metrics
+
   hass:
     image: homeassistant/raspberrypi3-homeassistant:stable
     container_name: hass
     restart: "no"
-    depends_on:
-      - mosquitto
-      - influxdb
-      - octoprint
     environment:
       - PARENT_HOSTNAME=${HOSTNAME}
       - HA_TITLE=Mein Zuhause @${HOSTNAME}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hass.tls=false"
+      - "traefik.http.routers.hass.entrypoints=dontuse"
+      - "traefik.docker.network=proxy"
+      - traefik.http.services.hass-nodesathome.loadbalancer.server.port=8123
+    depends_on:
+      - mosquitto
+      - influxdb
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "~/docker/home-assistant:/config"
-    ports:
-      - "8123:8123"
     networks:
-      - mosquitto-net
-      - influxdb-net
-      
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    restart: "no"
-    depends_on:
-      - influxdb
-      - prometheus
-    volumes:
-      - "~/docker/grafana:/var/lib/grafana"
-    ports:
-      - "3000:3000"
-    networks:
-      - influxdb-net
-      - prometheus-net
-      
+      - proxy
+      - backbone
+
   nginx:
     image: tobi312/rpi-nginx
     container_name: nginx
     restart: "no"
+    environment:
+      - TZ="Europe/Berlin"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.tls=false"
+      - "traefik.http.routers.nginx.entrypoints=dontuse"
     volumes:
       - "~/docker/nginx/nginx.conf:/etc/nginx/nginx.conf"
       - "~/docker/nginx/log:/var/log/nginx"
       - "~/docker/nginx/html:/usr/share/nginx/html"
       - "~/docker/nginx/tileboard:/usr/share/nginx/html/tileboard"
-    ports:
-      - "80:80"
+    networks:
+      - proxy
 
   nodered:
-    ###image: nodered/node-red-docker:rpi
     image: nodered/node-red
     container_name: nodered
     restart: "no"
@@ -137,26 +105,15 @@ services:
     environment:
       - TZ=Europe/Berlin
       - PARENT_HOSTNAME=${HOSTNAME}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nodered.tls=false"
+      - "traefik.http.routers.nodered.entrypoints=dontuse"
+      - "traefik.docker.network=proxy"
     volumes:
       - "~/docker/nodered:/data"
       - "~/docker/nginx/html:/var/www/html"
-      - "~/GIT/brewery/recipes:/data/recipes" 
-    ports:
-      - "1880:1880"
-      - "10001:10001"
+      - "~/GIT/brewery/recipes:/data/recipes"
     networks:
-      - mosquitto-net
-      - influxdb-net
-
-  octoprint:
-    build: 
-      context: ./octoprint
-      labels:
-        com.centurylinklabs.watchtower.enable: "false"
-    image: octoprint
-    container_name: octoprint
-    restart: "no"
-    volumes:
-      - "~/docker/octoprint:/data"
-    ports:
-      - "1337:80"
+      - proxy
+      - backbone

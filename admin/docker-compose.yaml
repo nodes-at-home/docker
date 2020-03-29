@@ -2,6 +2,8 @@
 ### junand 25.12.2019
 ###
 
+# admin/docker-compose.yaml
+
 version: "3.3"
 
 services:
@@ -10,8 +12,6 @@ services:
     image: containrrr/watchtower
     container_name: watchtower
     restart: "no"
-    labels:
-      - "traefik.enable=false"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     #  - "~/docker/watchtower/config.json:/config.json"

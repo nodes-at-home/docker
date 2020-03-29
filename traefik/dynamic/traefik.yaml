@@ -164,7 +164,7 @@ tcp:
             rule: HostSNI(`*`)
             middlewares:
               - pokemonnet
-            service: mosquitto-traefik@docker
+            service: mosquitto-nodesathome@docker
 
         mosquitto_secure:
             entryPoints:
@@ -173,7 +173,7 @@ tcp:
             middlewares:
               - pokemonnet
               # - hsts-header
-            service: mosquitto-traefik@docker
+            service: mosquitto-nodesathome@docker
             tls:
                 options: intermediate
 

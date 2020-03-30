@@ -29,8 +29,8 @@ services:
       - whoami
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - "~/docker/docker/traefik/traefik.yaml:/etc/traefik/traefik.yml"
-      - "~/docker/docker/traefik/dynamic:/etc/traefik/dynamic"
+      - "~/docker/docker/proxy/traefik.yaml:/etc/traefik/traefik.yml"
+      - "~/docker/docker/proxy/dynamic:/etc/traefik/dynamic"
       - "~/docker/traefik/ssl:/etc/ssl/nodesathome"
     ports:
       - "80:80"
@@ -40,6 +40,7 @@ services:
       - "10001:10001"
       - "10002:10002"
       - "8123:8123"
+      - "5601:5601"
     networks:
       - proxy
       - metrics

@@ -110,9 +110,33 @@ http:
             middlewares:
               - pokemonnet
               - octoprint_headers
-              - octoprint_stripprefix
+              - stripprefix
               # - hsts-header
             service: octoprint-printer3d@docker
+            tls:
+                options: intermediate
+
+        kibana:
+            entryPoints:
+              # - 'web_secure'
+              - 'kibana_secure'
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: kibana-logging@docker
+            tls:
+                options: intermediate
+
+        elasticsearch:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/elastic`)'
+            middlewares:
+              - pokemonnet
+              - stripprefix
+              # - hsts-header
+            service: elasticsearch-logging@docker
             tls:
                 options: intermediate
 
@@ -121,10 +145,21 @@ http:
             headers:
                 customRequestHeaders:
                     X-Script-Name: '/octoprint'
+        stripprefix:
+            stripPrefix:
+                prefixes:
+                  - '/octoprint'
+                  - '/elastic'
+                forceSlash: false
         octoprint_stripprefix:
             stripPrefix:
                 prefixes:
                   - '/octoprint'
+                forceSlash: false
+        elastic_stripprefix:
+            stripPrefix:
+                prefixes:
+                  - '/elastic'
                 forceSlash: false
         web-redirect:
             redirectScheme:

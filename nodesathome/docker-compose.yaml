@@ -20,7 +20,6 @@ networks:
     external:
         name: metrics
 
-
 services:
 
   mosquitto:
@@ -66,10 +65,11 @@ services:
       - "traefik.http.routers.hass.tls=false"
       - "traefik.http.routers.hass.entrypoints=dontuse"
       - "traefik.docker.network=proxy"
-      - traefik.http.services.hass-nodesathome.loadbalancer.server.port=8123
     depends_on:
       - mosquitto
       - influxdb
+    expose:
+      - "8123"
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "~/docker/home-assistant:/config"
@@ -94,6 +94,11 @@ services:
       - "~/docker/nginx/tileboard:/usr/share/nginx/html/tileboard"
     networks:
       - proxy
+    # logging:
+        # # driver: local
+        # driver: fluentd
+        # options:
+            # tag: nginx.logs
 
   nodered:
     image: nodered/node-red

@@ -7,12 +7,12 @@ global:
     checkNewVersion: true
     sendAnonymousUsage: false
 
-tracing:
+# tracing:
 
-    jaeger:
-        samplingServerURL: http://192.168.2.134:5778/sampling
-        samplingType: const
-        samplingParam: 1.0
+    # jaeger:
+        # samplingServerURL: http://192.168.2.134:5778/sampling
+        # samplingType: const
+        # samplingParam: 1.0
 
 api:
 
@@ -52,6 +52,9 @@ entryPoints:
 
     hass_secure:
         address: ":8123"
+
+    kibana_secure:
+        address: ":5601"
 
 metrics:
 

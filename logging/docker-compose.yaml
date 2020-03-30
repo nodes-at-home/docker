@@ -1,0 +1,79 @@
+###
+### junand 11.03.2020
+###
+
+# printer3d/docker-compose.yaml
+
+version: '3.3'
+
+networks:
+
+  proxy:
+    external:
+        name: proxy
+        
+  logging:
+    external:
+        name: logging
+        
+services:
+
+    fluentd:
+        build: 
+            context: ./fluentd
+            labels:
+                com.centurylinklabs.watchtower.enable: "false"
+        image: fluentd
+        container_name: fluentd
+        restart: "no"
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=false"
+          # - "traefik.http.routers.fluentd.tls=false"
+          # - "traefik.http.routers.fluentd.entrypoints=dontuse"
+        depends_on:
+          - elasticsearch
+        volumes:
+          - ~/docker/fluentd:/fluentd/etc
+        ports:
+          - "127.0.0.1:24224:24224"
+          - "127.0.0.1:24224:24224/udp"        
+        networks:
+          - logging
+
+    elasticsearch:
+        image: ind3x/rpi-elasticsearch
+        container_name: elasticsearch
+        restart: "no"
+        environment:
+          - TZ=Europe/Berlin
+          - "discovery.type=single-node"
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.elasticsearch.tls=false"
+          - "traefik.http.routers.elasticsearch.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        expose:
+          - "9200"
+        volumes:
+          - ~/docker/elasticsearch:/usr/share/elasticsearch/data
+          - ~/docker/elasticsearch/elasticsearch.yaml:/usr/share/elasticsearch/config/elasticsearch.yml
+        networks:
+          - proxy
+          - logging
+
+    kibana:
+        image: ind3x/rpi-kibana
+        container_name: kibana
+        restart: "no"
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.kibana.tls=false"
+          - "traefik.http.routers.kibana.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        networks:
+          - logging
+          - proxy

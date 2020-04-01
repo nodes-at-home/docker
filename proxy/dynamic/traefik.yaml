@@ -55,7 +55,7 @@ http:
             middlewares:
               - pokemonnet
               # - hsts-header
-            service: whoami-traefik@docker
+            service: whoami-proxy@docker
             tls:
                 options: intermediate
 
@@ -149,16 +149,6 @@ http:
             stripPrefix:
                 prefixes:
                   - '/octoprint'
-                  - '/elastic'
-                forceSlash: false
-        octoprint_stripprefix:
-            stripPrefix:
-                prefixes:
-                  - '/octoprint'
-                forceSlash: false
-        elastic_stripprefix:
-            stripPrefix:
-                prefixes:
                   - '/elastic'
                 forceSlash: false
         web-redirect:

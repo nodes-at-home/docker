@@ -2,7 +2,7 @@
 ### junand 11.03.2020
 ###
 
-# traefik/docker-compose.yaml
+# proxy/docker-compose.yaml
 
 version: '3.3'
 

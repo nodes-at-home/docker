@@ -11,12 +11,13 @@
 #   parameter: server1 server2 ..., without default list
 
 # https://msol.io/blog/tech/create-a-self-signed-ecc-certificate/
+# https://www.erianna.com/ecdsa-certificate-authorities-and-certificates-with-openssl/
 
 [ "x" = "x$1" ] && echo "Fehlender erster Parameter" && exit
 PASSWORD=$1
 [ -z $PASSWORD ] && echo "no password" && PASSWORD="hallo"
 
-CA="nodesathome_ec"
+CA="nodesathome"
 SERVERS="pitest nodesathome1 nodesathome2 pibrew pitouch"
 
 #BITLEN=2048

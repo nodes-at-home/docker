@@ -73,8 +73,7 @@ services:
       - metrics
 
   grafana:
-    #image: grafana/grafana:master
-    image: grafana/grafana:6.7.1
+    image: grafana/grafana:master
     container_name: grafana
     restart: "no"
     environment:

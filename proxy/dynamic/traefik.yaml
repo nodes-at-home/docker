@@ -145,6 +145,7 @@ http:
             headers:
                 customRequestHeaders:
                     X-Script-Name: '/octoprint'
+                    X-Scheme: 'https:'
         stripprefix:
             stripPrefix:
                 prefixes:

@@ -38,6 +38,15 @@ http:
               # - hsts-header
             service: redirect-all
 
+        luanodes_ota_unsecured:
+            entryPoints:
+              - 'web'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/luanodes_ota`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: nginx-nodesathome@docker
+
         api:
             entryPoints:
               - 'web_secure'

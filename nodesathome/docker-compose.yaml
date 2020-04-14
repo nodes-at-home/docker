@@ -63,8 +63,7 @@ services:
       - HA_TITLE=Mein Zuhause @${HOSTNAME}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.hass.tls=false"
-      - "traefik.http.routers.hass.entrypoints=dontuse"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"
     depends_on:
       - mosquitto
@@ -86,8 +85,8 @@ services:
       - TZ="Europe/Berlin"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nginx.tls=false"
-      - "traefik.http.routers.nginx.entrypoints=dontuse"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
+      - "traefik.docker.network=proxy"
     volumes:
       - "~/docker/docker/nodesathome/nginx.conf:/etc/nginx/nginx.conf"
       #- "~/docker/nginx/log:/var/log/nginx"
@@ -113,8 +112,7 @@ services:
       - PARENT_HOSTNAME=${HOSTNAME}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nodered.tls=false"
-      - "traefik.http.routers.nodered.entrypoints=dontuse"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"
     volumes:
       - "~/docker/nodered:/data"

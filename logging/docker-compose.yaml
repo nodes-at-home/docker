@@ -51,8 +51,7 @@ services:
           - "discovery.type=single-node"
         labels:
           - "traefik.enable=true"
-          - "traefik.http.routers.elasticsearch.tls=false"
-          - "traefik.http.routers.elasticsearch.entrypoints=dontuse"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
           - "traefik.docker.network=proxy"
         expose:
           - "9200"
@@ -71,8 +70,7 @@ services:
           - TZ=Europe/Berlin
         labels:
           - "traefik.enable=true"
-          - "traefik.http.routers.kibana.tls=false"
-          - "traefik.http.routers.kibana.entrypoints=dontuse"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
           - "traefik.docker.network=proxy"
         networks:
           - logging

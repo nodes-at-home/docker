@@ -26,8 +26,8 @@ services:
       - TZ="Europe/Berlin"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.tls=false"
-      - "traefik.http.routers.prometheus.entrypoints=dontuse"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
+      - "traefik.docker.network=metrics"
     depends_on:
       - cadvisor
       - node-exporter
@@ -45,8 +45,8 @@ services:
       - TZ="Europe/Berlin"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cadvisor.tls=false"
-      - "traefik.http.routers.cadvisor.entrypoints=dontuse"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
+      - "traefik.docker.network=metrics"
     volumes:
       - "/:/rootfs:ro"
       - "/var/run:/var/run:rw"
@@ -65,15 +65,14 @@ services:
       - TZ="Europe/Berlin"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.node-exporter.tls=false"
-      - "traefik.http.routers.node-exporter.entrypoints=dontuse"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
+      - "traefik.docker.network=metrics"
     volumes:
       - "/var/lib/node_exporter/textfile_collector:/data"
     networks:
       - metrics
 
   grafana:
-    #image: grafana/grafana:master
     image: grafana/grafana
     container_name: grafana
     restart: "no"
@@ -84,8 +83,7 @@ services:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.tls=false"
-      - "traefik.http.routers.grafana.entrypoints=dontuse"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"
     depends_on:
       - prometheus

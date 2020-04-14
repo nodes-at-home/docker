@@ -54,8 +54,7 @@ services:
       - TZ="Europe/Berlin"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.tls=false"
-      - "traefik.http.routers.whoami.entrypoints=dontuse"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"
     networks:
       - proxy

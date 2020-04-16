@@ -46,6 +46,7 @@ services:
     restart: "no"
     environment:
       - TZ="Europe/Berlin"
+      - INFLUXDB_REPORTING_DISABLED=true
     labels:
       - "traefik.enable=false"
     volumes:

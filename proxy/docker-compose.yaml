@@ -33,14 +33,15 @@ services:
       - "~/docker/docker/proxy/dynamic:/etc/traefik/dynamic"
       - "~/docker/traefik/ssl:/etc/ssl/nodesathome"
     ports:
-      - "80:80"
-      - "443:443"
-      - "1883:1883"
-      - "8883:8883"
-      - "10001:10001"
-      - "10002:10002"
-      - "8123:8123"
-      - "5601:5601"
+      - "80:80"             # http
+      - "443:443"           # htpps
+      - "1883:1883"         # mqtt
+      - "8883:8883"         # mqtts
+      - "10001:10001"       # luatrace (deprecated)
+      - "10002:10002"       # luatrace secure
+      - "8123:8123"         # home assistant secure
+      - "5601:5601"         # kibana secure
+      - "8086:8086"         # influxdb secure
     networks:
       - proxy
       - metrics

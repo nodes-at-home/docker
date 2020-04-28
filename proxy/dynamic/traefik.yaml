@@ -29,7 +29,7 @@ http:
 
     routers:
 
-        web:
+        web_redirect:
             entryPoints:
               - 'web'
             rule: 'HostRegexp(`{any:.*}`)'
@@ -149,6 +149,17 @@ http:
             tls:
                 options: intermediate
 
+        influxdb:
+            entryPoints:
+              - 'influxdb_secure'
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+            middlewares:
+              - pibrew
+              # - hsts-header
+            service: influxdb-nodesathome@docker
+            tls:
+                options: intermediate
+
     middlewares:
         octoprint_headers:
             headers:
@@ -181,6 +192,11 @@ http:
             ipWhiteList:
                 sourceRange:
                   - 192.168.2.0/24
+
+        pibrew:
+            ipWhiteList:
+                sourceRange:
+                  - 192.168.2.15/32
 
     services:
         redirect-all:

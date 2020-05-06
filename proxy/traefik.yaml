@@ -66,5 +66,8 @@ metrics:
         addServicesLabels: true
 
 log:
-    # ERROR, DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
-    level: DEBUG
+    # DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
+    level: INFO
+    format: json
+
+accessLog: {}

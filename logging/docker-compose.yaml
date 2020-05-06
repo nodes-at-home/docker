@@ -35,7 +35,10 @@ services:
         depends_on:
           - elasticsearch
         volumes:
-          - ~/docker/fluentd:/fluentd/etc
+          - ~/docker/docker/logging/fluentd:/fluentd/etc
+          # for deug only
+          #- ~/docker/fluentd/logs:/logs
+          - /var/lib/docker/containers:/var/lib/docker/containers
         ports:
           - "127.0.0.1:24224:24224"
           - "127.0.0.1:24224:24224/udp"        

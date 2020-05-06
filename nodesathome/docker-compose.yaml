@@ -98,11 +98,6 @@ services:
       - "~/docker/nginx/tileboard:/usr/share/nginx/html/tileboard"
     networks:
       - proxy
-    # logging:
-        # # driver: local
-        # driver: fluentd
-        # options:
-            # tag: nginx.logs
 
   nodered:
     image: nodered/node-red

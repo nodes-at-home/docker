@@ -116,7 +116,6 @@ services:
     volumes:
       - "~/docker/nodered:/data"
       - "~/docker/nginx/html:/var/www/html"
-      - "~/GIT/brewery/recipes:/data/recipes"
     networks:
       - proxy
       - backbone

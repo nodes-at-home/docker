@@ -1,0 +1,12 @@
+# junand 08.05.2020
+
+cluster:
+    name: nodesathome
+
+node:
+    # generic docker hostname
+    name: ${HOSTNAME}
+    
+network:
+    host: 0.0.0.0
+

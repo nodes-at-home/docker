@@ -30,8 +30,6 @@ services:
           - TZ=Europe/Berlin
         labels:
           - "traefik.enable=false"
-          # - "traefik.http.routers.fluentd.tls=false"
-          # - "traefik.http.routers.fluentd.entrypoints=dontuse"
         depends_on:
           - elasticsearch
         volumes:
@@ -50,6 +48,7 @@ services:
         container_name: elasticsearch
         restart: "no"
         environment:
+          - HOSTNAME
           - TZ=Europe/Berlin
           - "discovery.type=single-node"
         labels:
@@ -60,7 +59,7 @@ services:
           - "9200"
         volumes:
           - ~/docker/elasticsearch:/usr/share/elasticsearch/data
-          - ~/docker/elasticsearch/elasticsearch.yaml:/usr/share/elasticsearch/config/elasticsearch.yml
+          - ~/docker/docker/logging/elasticsearch.yaml:/usr/share/elasticsearch/config/elasticsearch.yml
         networks:
           - proxy
           - logging

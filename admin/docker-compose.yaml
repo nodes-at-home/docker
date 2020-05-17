@@ -6,6 +6,12 @@
 
 version: "3.3"
 
+networks:
+
+  admin:
+    external:
+        name: admin
+
 services:
 
   watchtower:
@@ -30,6 +36,8 @@ services:
       - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=${WATCHTOWER_MAIL_USER}
       - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=${WATCHTOWER_MAIL_PW}
       - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
+    networks:
+      - admin
 
 
 # remove images who are older than ...

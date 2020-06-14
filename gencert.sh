@@ -18,7 +18,7 @@ PASSWORD=$1
 [ -z $PASSWORD ] && echo "no password" && PASSWORD="hallo"
 
 CA="nodesathome"
-SERVERS="pitest nodesathome1 nodesathome2 pibrew pitouch"
+SERVERS="pitest nodesathome1 nodesathome2 nodesathome3 nodesathome4 pibrew pitouch"
 
 #BITLEN=2048
 
@@ -32,8 +32,8 @@ SUBJ_BASE="/C=DE/L=Panketal/O=Andreas"
 PASS="pass:${PASSWORD}"
 echo "pass clause: ${PASS}"
 
-WITH_CA=true
-#WITH_CA=false
+#WITH_CA=true
+WITH_CA=false
 
 if [ ${WITH_CA} = true ]
 then

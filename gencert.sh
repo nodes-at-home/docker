@@ -7,20 +7,58 @@
 # https://likegeeks.com/linux-bash-scripting-awesome-guide-part3/
 # Options:
 #   -p <password>
-#   -ca with ca cert creation
+#   -c with ca cert creation
 #   parameter: server1 server2 ..., without default list
 
 # https://msol.io/blog/tech/create-a-self-signed-ecc-certificate/
 # https://www.erianna.com/ecdsa-certificate-authorities-and-certificates-with-openssl/
 
-[ "x" = "x$1" ] && echo "Fehlender erster Parameter" && exit
-PASSWORD=$1
-[ -z $PASSWORD ] && echo "no password" && PASSWORD="hallo"
-
-CA="nodesathome"
+# defaults
+WITH_CA=false
+PASSWORD=hallo
+CA=nodesathome
 SERVERS="pitest nodesathome1 nodesathome2 nodesathome3 nodesathome4 pibrew pitouch"
 
-#BITLEN=2048
+POSITIONAL=()
+
+while [[ $# -gt 0 ]]
+do
+
+    key="$1"
+
+    case $key in
+        -p|--password)
+        PASSWORD="$2"
+        shift; shift
+        ;;
+        -c|--ca)
+        CA="$2"
+        shift; shift
+        ;;
+        -w|--withca)
+        WITH_CA=true
+        shift
+        ;;
+        -s|--servers)
+        SERVERS="$2"
+        shift; shift
+        ;;
+        *)    # unknown option
+        POSITIONAL+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
+
+done
+
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+echo "PARAMETER=$*"
+
+echo "PASSWORD      = ${PASSWORD}"
+echo "WITH_CA       = ${WITH_CA}"
+echo "CA            = ${CA}"
+echo "SERVERS       = ${SERVERS}"
 
 DAYS_CA=1095
 DAYS_CERT=365
@@ -30,10 +68,6 @@ SHA_OPT="-sha256"
 SUBJ_BASE="/C=DE/L=Panketal/O=Andreas"
 
 PASS="pass:${PASSWORD}"
-echo "pass clause: ${PASS}"
-
-#WITH_CA=true
-WITH_CA=false
 
 if [ ${WITH_CA} = true ]
 then

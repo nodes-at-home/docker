@@ -4,7 +4,7 @@
 # https://github.com/jamct/docker-log
 # https://hub.docker.com/r/kiyoto/docker-fluentd
 
-FROM fluent/fluentd:edge-debian-armhf
+FROM fluent/fluentd:v1.11-arm64-debian
 
 USER root
 RUN ["/usr/local/bin/gem", "install", "fluent-plugin-record-reformer", "fluent-plugin-elasticsearch", "fluent-plugin-rewrite-tag-filter", "--no-document"]

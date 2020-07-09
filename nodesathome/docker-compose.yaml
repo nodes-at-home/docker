@@ -59,7 +59,7 @@ services:
       - metrics
 
   hass:
-    image: homeassistant/raspberrypi3-homeassistant:stable
+    image: homeassistant/home-assistant:stable
     container_name: hass
     restart: "no"
     environment:
@@ -83,6 +83,7 @@ services:
 
   nginx:
     image: tobi312/rpi-nginx
+    #image: nginx
     container_name: nginx
     restart: "no"
     environment:

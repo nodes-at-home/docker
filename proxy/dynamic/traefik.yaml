@@ -184,15 +184,11 @@ http:
                 users:
                   - "test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"
                   - "test2:$apr1$d9hr9HBB$4HxwgUir3HP4EsggP/QNo0"
-        onlysurface:
-            ipWhiteList:
-                sourceRange:
-                  - 192.168.2.134/32
         pokemonnet:
             ipWhiteList:
                 sourceRange:
                   - 192.168.2.0/24
-
+                  - 192.168.43.0/24     # for clients from net over xperia
         pibrew:
             ipWhiteList:
                 sourceRange:

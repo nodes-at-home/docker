@@ -1,6 +1,6 @@
 # junand 27.10.2019
 
-FROM reloxx13/octoprint
+FROM nunofgs/octoprint
 
 RUN apt-get install -y --no-install-recommends \
     socat

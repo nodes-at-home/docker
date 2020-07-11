@@ -1,0 +1,102 @@
+accessControl:
+  enabled: false
+appearance:
+  color: green
+  colorIcon: false
+  name: K8200
+controls:
+- children:
+  - command: M401
+    name: engage
+  - command: M402
+    name: retract
+  - commands:
+    - G91
+    - G0Z10F200
+    - G28X0Y0
+    - G0X138Y100F6000
+    - G28Z0
+    - G0Z10F200
+    - G0X-38F6000
+    - G90
+    - M402
+    name: homing
+  layout: horizontal
+  name: Z-Probe
+- children:
+  - command: M42P4D1
+    name: 'on'
+  - command: M42P4D0
+    name: 'off'
+  layout: horizontal
+  name: LED_light
+- children:
+  - commands:
+    - M301 P25.27 I3.06 D52.16
+    - M92 E680
+    - M851 Z-18.10
+    - M500
+    name: Set e3d 2.85mm (0.4mm)
+  - commands:
+    - M301 P23.59 I2.48 D56.05
+    - M92 E680
+    - M851 Z-21.10
+    - M500
+    name: Set e3d 1.75mm (0.3mm)
+  - commands:
+    - M301 M301 P26.45 I2.55 D68.48
+    - M92 E640
+    - M851 Z-9.10
+    - M500
+    name: Set volcano 2.85mm (0.8mm)
+  layout: vertical
+  name: Extruder (PID, E-Steps, Z-Offset)
+- children:
+  - command: M303 E0 S210 C8
+    name: Start
+  - command: M301
+    name: Report
+  layout: horizontal
+  name: PID Auotuning
+feature:
+  keyboardControl: false
+  printCancelConfirmation: false
+reverseProxy:
+  prefixHeader: X-Script-Name
+serial:
+  additionalPorts:
+  - /dev/virtualcom0
+  baudrate: 115200
+  port: /dev/virtualcom0
+server:
+  firstRun: false
+  onlineCheck:
+    enabled: false
+  pluginBlacklist:
+    enabled: true
+  seenWizards:
+    corewizard: 3
+    tracking: null
+system:
+  actions:
+  - action: restart_socat
+    command: supervisorctl restart socat
+    name: Restart socat
+  - action: stop_socat
+    command: supervisorctl stop socat
+    name: Stop socat
+temperature:
+  profiles:
+  - bed: 100
+    chamber: null
+    extruder: 210
+    name: ABS
+  - bed: 60
+    chamber: null
+    extruder: 180
+    name: PLA
+webcam:
+  flipH: true
+  flipV: true
+  rotate90: true
+  stream: http://192.168.2.92

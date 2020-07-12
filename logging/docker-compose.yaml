@@ -76,6 +76,8 @@ services:
           - "traefik.enable=true"
           - "traefik.http.routers.dontuse.entrypoints=dontuse"
           - "traefik.docker.network=proxy"
+        depends_on:
+          - elasticsearch
         volumes:
           - ~/docker/docker/logging/kibana.yaml:/usr/share/kibana/config/kibana.yml
         networks:

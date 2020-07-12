@@ -16,6 +16,10 @@ networks:
     external:
         name: metrics
 
+  backbone:
+    external:
+        name: backbone
+
 services:
 
   prometheus:
@@ -92,3 +96,4 @@ services:
     networks:
       - proxy
       - metrics
+      - backbone

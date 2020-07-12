@@ -16,10 +16,6 @@ networks:
     external:
         name: backbone
 
-  metrics:
-    external:
-        name: metrics
-
 services:
 
   mosquitto:
@@ -40,24 +36,6 @@ services:
     networks:
       - proxy
 
-  influxdb:
-    image: influxdb
-    container_name: influxdb
-    restart: "no"
-    environment:
-      - TZ="Europe/Berlin"
-      - INFLUXDB_REPORTING_DISABLED=true
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=proxy"
-    volumes:
-      - "~/docker/influxdb:/var/lib/influxdb"
-    networks:
-      - proxy
-      - backbone
-      - metrics
-
   hass:
     image: homeassistant/home-assistant:stable
     container_name: hass
@@ -71,7 +49,6 @@ services:
       - "traefik.docker.network=proxy"
     depends_on:
       - mosquitto
-      - influxdb
     expose:
       - "8123"
     volumes:
@@ -105,7 +82,6 @@ services:
     container_name: nodered
     restart: "no"
     depends_on:
-      - influxdb
       - mosquitto
     environment:
       - TZ=Europe/Berlin

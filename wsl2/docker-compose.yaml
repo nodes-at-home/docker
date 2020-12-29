@@ -1,0 +1,48 @@
+###
+### junand 25.08.2020
+###
+
+# wsl2/docker-compose.yaml
+
+version: "3.3"
+
+volumes:
+    portainer_data:
+
+networks:
+    admin:
+        external:
+            name: admin
+
+services:
+
+    portainer:
+        image: portainer/portainer-ce
+        container_name: portainer
+        restart: always
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - portainer_data:/data
+        ports:
+          - 9000:9000
+          # - 8000:8000
+        networks:
+          - admin
+      
+    qtcreator:
+        build:
+          context: ./qtcreator
+          labels:
+            com.centurylinklabs.watchtower.enable: "false"
+        image: qtcreator
+        container_name: qtcreator
+        restart: "no"
+        environment:
+          - TZ=Europe/Berlin
+          - DISPLAY=host.docker.internal:0.0
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - "/tmp/.X11-unix:/tmp/.X11-unix"
+          - "/home/${USER}:/home/${USER}"
+        command: qtcreator

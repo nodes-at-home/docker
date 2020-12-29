@@ -27,6 +27,7 @@ WORKDIR /qt/build
 
 ADD build_qt.sh /qt/build/build_qt.sh
 RUN QT_VERSION=$QT_VERSION QT_CREATOR_VERSION=$QT_CREATOR_VERSION /qt/build/build_qt.sh
+RUN apt-get -y install fonts-dejavu && ln -s /usr/share/fonts/truetype/dejavu /usr/local/lib/fonts
 
 USER user
 

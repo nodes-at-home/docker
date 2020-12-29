@@ -1,0 +1,24 @@
+###
+### junand 25.08.2020
+###
+
+# wsl2/docker-compose.yaml
+
+version: "3.3"
+
+services:
+
+    # docker run -it -p 8888:8888 -v C:\Users\andre\OneDrive\Dokumente\Docker\tensorflow\:/tf -e TZ=Europe/Berlin --name tfj tensorflow/tensorflow:latest-jupyter
+    tensorflow-jupyter:
+        image: tensorflow/tensorflow:latest-jupyter
+        container_name: tensorflow-jupyter
+        restart: "no"
+        environment:
+          - TZ="Europe/Berlin"
+          - PARENT_HOSTNAME=${HOSTNAME}
+        ports:
+          - 8888:8888
+        volumes:
+          - ~/docker/tensorflow:/tf
+        
+

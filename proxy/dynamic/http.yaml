@@ -131,7 +131,7 @@ http:
               - 'influxdb_secure'
             rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
             middlewares:
-              - pibrew
+              - pokemonnet
               # - hsts-header
             service: influxdb-database@docker
             tls:

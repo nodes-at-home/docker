@@ -18,7 +18,7 @@ networks:
 
 services:
 
-  influxdb:
+  influxdb_v1:
     image: influxdb:1.8
     container_name: influxdb
     restart: "no"
@@ -34,4 +34,51 @@ services:
     networks:
       - proxy
       - backbone
+
+  influxdb_upgrade:
+    image: influxdb:2.0
+    container_name: influxdb_upgrade
+    restart: "no"
+    ports:
+      - "8086:8086"
+    environment:
+      - TZ="Europe/Berlin"
+      - INFLUXDB_REPORTING_DISABLED=true
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=***PASSWORD***
+      - DOCKER_INFLUXDB_INIT_ORG=***ORG***
+      - DOCKER_INFLUXDB_INIT_BUCKET=data
+      - DOCKER_INFLUXDB_INIT_MODE=upgrade
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
+      - "traefik.docker.network=proxy"
+    volumes:
+        # create new dir v2 and change v1 data dirs owner to 1000:1000
+      - "~/docker/influxdb:/var/lib/influxdb"
+      - "~/docker/influxdb/v2:/var/lib/influxdb2"
+      - "~/docker/influxdb/v2:/etc/influxdb2"
+    networks:
+      - proxy
+      - backbone
+
+  influxdb:
+    image: influxdb:2.0
+    container_name: influxdb
+    restart: "no"
+    environment:
+      - TZ="Europe/Berlin"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
+      - "traefik.docker.network=proxy"
+    expose:
+      - "8086"
+    volumes:
+      - "~/docker/influxdb/v2:/var/lib/influxdb2"
+      - "~/docker/influxdb/v2:/etc/influxdb2"
+    networks:
+      - proxy
+      - backbone
+
 

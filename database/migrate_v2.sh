@@ -36,7 +36,22 @@ function get_token {
     echo ${RESULT}
 }
 
+function rename_bucket {
+    # $1 new name
+    ID=$(get_bucket_id "$1/autogen")
+    if [ "${ID}" != "Error:" ]
+    then
+        docker exec ${CONTAINER} influx bucket update --id $ID --name $1
+    fi
+}
+
 echo start
+
+rename_bucket ambient
+rename_bucket brewery
+rename_bucket consumption
+rename_bucket home_assistant
+rename_bucket rssi
 
 # read token ids, container must be runnning
 BUCKET_ID_AMBIENT=$(get_bucket_id ambient)
@@ -52,6 +67,7 @@ echo "brewery:        ${BUCKET_ID_BREWERY}"
 echo "^consumption:   ${BUCKET_ID_CONSUMPTION}"
 echo "home_assistant: ${BUCKET_ID_HOME_ASSISTANT}"
 echo "rssi:           ${BUCKET_ID_RSSI}"
+
 
 ORGID_NODESATHOME=$(get_org_id nodesathome)
 

@@ -3,8 +3,8 @@
 
 # set admin token here
 CONTAINER=influxdb
-INFLUX_TOKEN=***Secret***
-PASSWORD=***Secret***
+INFLUX_TOKEN=-iLSqZNSUwzgAl_MbJyjhfNz8C0-kHJd3hKiXXY-hKTu50lSuW4WMNGsnQPNWrKiprbVq_8s7ryKca4uZEtNOg==
+PASSWORD=ninanora
 
 function get_bucket_id {
     # $1 bucket name
@@ -64,7 +64,7 @@ echo ""
 echo "bucket ids"
 echo "ambient:        ${BUCKET_ID_AMBIENT}"
 echo "brewery:        ${BUCKET_ID_BREWERY}"
-echo "^consumption:   ${BUCKET_ID_CONSUMPTION}"
+echo "consumption:    ${BUCKET_ID_CONSUMPTION}"
 echo "home_assistant: ${BUCKET_ID_HOME_ASSISTANT}"
 echo "rssi:           ${BUCKET_ID_RSSI}"
 

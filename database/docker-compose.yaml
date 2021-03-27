@@ -68,6 +68,7 @@ services:
     restart: "no"
     environment:
       - TZ="Europe/Berlin"
+      - INFLUXDB_REPORTING_DISABLED=true
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dontuse.entrypoints=dontuse"

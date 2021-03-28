@@ -53,9 +53,6 @@ entryPoints:
     hass_secure:
         address: ":8123"
 
-    kibana_secure:
-        address: ":5601"
-
     influxdb_secure:
         address: ":8086"
 

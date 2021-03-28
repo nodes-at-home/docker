@@ -102,6 +102,17 @@ http:
             tls:
                 options: intermediate
 
+        chronograf:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/chronograf`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: chronograf-logging@docker
+            tls:
+                options: intermediate
+
         kibana:
             entryPoints:
               # - 'web_secure'

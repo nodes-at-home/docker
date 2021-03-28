@@ -15,8 +15,46 @@ networks:
   logging:
     external:
         name: logging
+
+  backbone:
+    external:
+        name: backbone
         
 services:
+
+    telegraf:
+        image: telegraf:latest
+        container_name: telegraf
+        restart: "no"
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=false"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          # - "traefik.docker.network=logging"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - ~/docker/docker/logging/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+        networks:
+          - backbone
+
+    chronograf:
+        image: chronograf:latest
+        container_name: chronograf
+        restart: "no"
+        environment:
+          - TZ=Europe/Berlin
+          - INFLUXDB_URL=http://influxdb:8086
+          - BASE_PATH=/chronograf
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        volumes:
+          - ~/docker/chronograf:/var/lib/chronograf
+        networks:
+          - backbone
+          - proxy
 
     fluentd:
         build: 

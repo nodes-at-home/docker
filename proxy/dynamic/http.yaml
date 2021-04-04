@@ -150,7 +150,7 @@ http:
         pokemonnet:
             ipWhiteList:
                 sourceRange:
-                  - 0.0.0.0/0         # no restriction
+                  # - 0.0.0.0/0         # no restriction
                   - 192.168.2.0/24
                   - 192.168.43.0/24     # for clients from net over xperia
         pibrew:

@@ -28,6 +28,7 @@ services:
         restart: "no"
         environment:
           - TZ=Europe/Berlin
+          - INFLUX_TOKEN=${INFLUX_TOKEN}
         labels:
           - "traefik.enable=false"
           - "traefik.http.routers.dontuse.entrypoints=dontuse"

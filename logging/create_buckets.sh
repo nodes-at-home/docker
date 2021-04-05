@@ -1,5 +1,5 @@
 #!/bin/bash
-# junand 23.03.2021
+# junand 05.04.2021
 
 CONTAINER=influxdb
 # INFLUX_TOKEN=***Secret***
@@ -36,18 +36,32 @@ function get_token {
     echo ${RESULT}
 }
 
+function set_retention {
+    # $1 bucket id $2 retentions string
+    docker exec ${CONTAINER} influx bucket update --id $1 --retention $2
+}
+
+function list_buckets {
+    # $1 id
+    docker exec ${CONTAINER} influx bucket list
+}
+
 
 BUCKET_ID_LOGS=$(get_bucket_id logs)
+BUCKET_ID_TELEGRAF=$(get_bucket_id telegraf)
 
 echo ""
 echo "bucket ids"
 echo "logs:             ${BUCKET_ID_LOGS}"
+echo "telegraf:         ${BUCKET_ID_TELEGRAF}"
 
 USER_ID_LOGS=$(get_user_id logs)
+USER_ID_TELEGRAF=$(get_user_id telegraf)
 
 echo ""
 echo "user ids"
 echo "logs:             ${USER_ID_LOGS}"
+echo "telegraf:         ${USER_ID_TELEGRAF}"
 
 
 TOKEN_LOGS_READ_WRITE=$(get_token logs_read_write logs "\
@@ -55,6 +69,20 @@ TOKEN_LOGS_READ_WRITE=$(get_token logs_read_write logs "\
 --write-bucket ${BUCKET_ID_LOGS} \
 ")
 
+TOKEN_TELEGRAF_READ_WRITE=$(get_token telegraf_read_write telegraf "\
+--read-bucket ${BUCKET_ID_TELEGRAF} \
+--write-bucket ${BUCKET_ID_TELEGRAF} \
+")
+
 echo ""
 echo "token"
 echo "logs_read_write:  ${TOKEN_LOGS_READ_WRITE}"
+echo "telegraf_read_write:  ${TOKEN_TELEGRAF_READ_WRITE}"
+
+
+_=$(set_retention ${BUCKET_ID_LOGS} "4w")
+_=$(set_retention ${BUCKET_ID_TELEGRAF} "1w")
+
+echo ""
+echo "set retention"
+list_buckets

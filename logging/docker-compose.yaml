@@ -8,19 +8,27 @@ version: '3.3'
 
 networks:
 
-  proxy:
-    external:
-        name: proxy
-        
-  logging:
-    external:
-        name: logging
-
   backbone:
     external:
         name: backbone
         
 services:
+
+    telegraf_logs:
+        image: telegraf:latest
+        container_name: telegraf_logs
+        restart: "no"
+        environment:
+          - TZ=Europe/Berlin
+          - INFLUX_TOKEN=${INFLUX_TOKEN}
+        labels:
+          - "traefik.enable=false"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - ~/docker/docker/logging/telegraf_logs.conf:/etc/telegraf/telegraf.conf:ro
+        networks:
+          - backbone
 
     telegraf:
         image: telegraf:latest
@@ -29,30 +37,12 @@ services:
         environment:
           - TZ=Europe/Berlin
           - INFLUX_TOKEN=${INFLUX_TOKEN}
+          - HOSTNAME=${HOSTNAME}
         labels:
           - "traefik.enable=false"
           - "traefik.http.routers.dontuse.entrypoints=dontuse"
-          # - "traefik.docker.network=logging"
         volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
           - ~/docker/docker/logging/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+          - ~/docker/traefik/ssl:/etc/ssl/certs/nodesathome:ro
         networks:
           - backbone
-
-    chronograf:
-        image: chronograf:latest
-        container_name: chronograf
-        restart: "no"
-        environment:
-          - TZ=Europe/Berlin
-          - INFLUXDB_URL=http://influxdb:8086
-          - BASE_PATH=/chronograf
-        labels:
-          - "traefik.enable=true"
-          - "traefik.http.routers.dontuse.entrypoints=dontuse"
-          - "traefik.docker.network=proxy"
-        volumes:
-          - ~/docker/chronograf:/var/lib/chronograf
-        networks:
-          - backbone
-          - proxy

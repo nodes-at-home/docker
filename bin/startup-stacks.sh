@@ -5,7 +5,7 @@ pushd "$HOME/docker/docker"
 
 ./create_networks.sh
 
-STACKS="admin proxy database metrics logging nodesathome"
+STACKS="admin proxy database metrics nodesathome"
 
 for stack in ${STACKS}
 do

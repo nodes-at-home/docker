@@ -6,5 +6,4 @@
 docker network create --driver bridge proxy
 docker network create --driver bridge backbone
 docker network create --driver bridge metrics
-docker network create --driver bridge logging
 docker network create --driver bridge admin

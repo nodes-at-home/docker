@@ -4,7 +4,7 @@
 
 # metrics/docker-compose.yaml
 
-version: '3.3'
+version: '3.8'
 
 networks:
 
@@ -75,6 +75,22 @@ services:
       - "/var/lib/node_exporter/textfile_collector:/data"
     networks:
       - metrics
+
+  fritzbox:
+    build:
+      context: ./fritzbox
+      labels:
+        com.centurylinklabs.watchtower.enable: "false"
+    image: fritzbox
+    restart: "no"
+    environment:
+      - TZ=Europe/Berlin
+    labels:
+      - "traefik.enable=false"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
+      - "traefik.docker.network=proxy"
+    networks:
+      - backbone
 
   grafana:
     image: grafana/grafana

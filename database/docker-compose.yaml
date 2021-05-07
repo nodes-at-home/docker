@@ -46,12 +46,19 @@ services:
           - TZ=Europe/Berlin
           - INFLUX_TOKEN=${INFLUX_TOKEN}
         labels:
-          - "traefik.enable=false"
-          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.enable=true"
+          - "traefik.tcp.routers.syslog.tls=false"
+          - "traefik.tcp.services.telegraf-logs-database.loadbalancer.server.port=514"
+          - "traefik.docker.network=proxy"
+        expose:
+          - "514/udp"
+          - "514/tcp"
+          - "6514/tcp"
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - ./telegraf_logs.conf:/etc/telegraf/telegraf.conf:ro
         networks:
+          - proxy
           - backbone
 
     telegraf:
@@ -64,10 +71,8 @@ services:
           - HOSTNAME=${HOSTNAME}
         labels:
           - "traefik.enable=false"
-          - "traefik.http.routers.dontuse.entrypoints=dontuse"
         volumes:
           - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
           - ~/docker/traefik/ssl:/etc/ssl/certs/nodesathome:ro
         networks:
           - backbone
-

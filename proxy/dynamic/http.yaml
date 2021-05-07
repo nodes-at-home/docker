@@ -102,17 +102,6 @@ http:
             tls:
                 options: intermediate
 
-        chronograf:
-            entryPoints:
-              - 'web_secure'
-            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/chronograf`)'
-            middlewares:
-              - pokemonnet
-              # - hsts-header
-            service: chronograf-logging@docker
-            tls:
-                options: intermediate
-
         influxdb:
             entryPoints:
               - 'influxdb_secure'
@@ -150,7 +139,7 @@ http:
         pokemonnet:
             ipWhiteList:
                 sourceRange:
-                  # - 0.0.0.0/0         # no restriction
+                  # - 0.0.0.0/0         # no restriction (necessary for docker for windows under wsl2)
                   - 192.168.2.0/24
                   - 192.168.43.0/24     # for clients from net over xperia
         pibrew:

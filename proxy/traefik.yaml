@@ -50,6 +50,9 @@ entryPoints:
     trace_secure:
         address: ":10002"
 
+    syslog_udp:
+        address: ":514/udp"
+
     hass_secure:
         address: ":8123"
 

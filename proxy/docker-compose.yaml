@@ -39,6 +39,9 @@ services:
       - "8883:8883"         # mqtts
       - "10001:10001"       # luatrace (deprecated)
       - "10002:10002"       # luatrace secure
+      - "514:514"           # syslog
+      - "514:514/udp"       # syslog
+      # - "6514:6514"         # syslog secure
       - "8123:8123"         # home assistant secure
       - "8086:8086"         # influxdb secure
     networks:

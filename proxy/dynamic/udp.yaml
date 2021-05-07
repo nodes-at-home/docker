@@ -1,0 +1,19 @@
+###
+### junand 02.05.2021
+###
+
+udp:
+
+    routers:
+
+        syslog_udp:
+            entryPoints:
+              - syslog_udp
+            service: syslog_udp
+            
+    services:
+    
+        syslog_udp:
+            loadBalancer:
+                servers:
+                  - address: telegraf_logs:514

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-pushd "$HOME/docker/docker"
+pushd "$HOME/docker/docker/bin"
 
 ./create_networks.sh
 

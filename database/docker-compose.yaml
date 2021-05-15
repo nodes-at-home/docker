@@ -50,10 +50,10 @@ services:
           - "traefik.tcp.routers.syslog.tls=false"
           - "traefik.tcp.services.telegraf-logs-database.loadbalancer.server.port=514"
           - "traefik.docker.network=proxy"
+        depends_on:
+          - influxdb
         expose:
           - "514/udp"
-          - "514/tcp"
-          - "6514/tcp"
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - ./telegraf_logs.conf:/etc/telegraf/telegraf.conf:ro
@@ -71,6 +71,8 @@ services:
           - HOSTNAME=${HOSTNAME}
         labels:
           - "traefik.enable=false"
+        depends_on:
+          - influxdb
         volumes:
           - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
           - ~/docker/traefik/ssl:/etc/ssl/certs/nodesathome:ro

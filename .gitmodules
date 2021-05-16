@@ -1,0 +1,3 @@
+[submodule "mkdocs/mkdocs-material"]
+	path = mkdocs/mkdocs-material
+	url = git://github.com/glumanda/mkdocs-material

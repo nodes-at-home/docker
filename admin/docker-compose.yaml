@@ -21,7 +21,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     #  - "~/docker/watchtower/config.json:/config.json"
-    command: --debug --include-stopped --schedule "0 0 1 * * 6"     # saturday morning 1:00 utc, production mode
+    command: --debug --include-stopped --schedule "0 0 1 * * ${WATCHTOWER_SCHEDULE_DAY}"     # 6 = saturday morning 1:00 utc, production mode
     # more options
     #   --monitor-only -> without container restart
     #   --interval 60  -> every minute

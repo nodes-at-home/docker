@@ -45,6 +45,7 @@ services:
         environment:
           - TZ=Europe/Berlin
           - INFLUX_TOKEN=${INFLUX_TOKEN}
+          - PARENT_HOSTNAME=${HOSTNAME}
         labels:
           - "traefik.enable=true"
           - "traefik.tcp.routers.syslog.tls=false"
@@ -57,6 +58,8 @@ services:
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - ./telegraf_logs.conf:/etc/telegraf/telegraf.conf:ro
+          # telegraf container dont know syslog
+          - /var/log/syslog:/var/log/syslog
         networks:
           - proxy
           - backbone

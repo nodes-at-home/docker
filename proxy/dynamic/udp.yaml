@@ -16,4 +16,4 @@ udp:
         syslog_udp:
             loadBalancer:
                 servers:
-                  - address: telegraf_logs:514
+                  - address: telegraf_logs:6514

@@ -49,12 +49,12 @@ services:
         labels:
           - "traefik.enable=true"
           - "traefik.tcp.routers.syslog.tls=false"
-          - "traefik.tcp.services.telegraf-logs-database.loadbalancer.server.port=514"
+          - "traefik.tcp.services.telegraf-logs-database.loadbalancer.server.port=6514"
           - "traefik.docker.network=proxy"
         depends_on:
           - influxdb
         expose:
-          - "514/udp"
+          - "6514/udp"
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - ./telegraf_logs.conf:/etc/telegraf/telegraf.conf:ro

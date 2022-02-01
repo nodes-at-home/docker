@@ -10,7 +10,8 @@ services:
 
     # docker run -it -p 8888:8888 -v C:\Users\andre\OneDrive\Dokumente\Docker\tensorflow\:/tf -e TZ=Europe/Berlin --name tfj tensorflow/tensorflow:latest-jupyter
     tensorflow-jupyter:
-        image: tensorflow/tensorflow:latest-jupyter
+        image: tensorflow/tensorflow:latest-gpu-py3-jupyter
+        # image: tensorflow/tensorflow:latest-jupyter
         container_name: tensorflow-jupyter
         restart: "no"
         environment:
@@ -20,5 +21,23 @@ services:
           - 8888:8888
         volumes:
           - ~/docker/tensorflow:/tf
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                      - driver: nvidia
+                        count: all
+                        capabilities: [gpu]
+
+    gpu-test:
+        image: nvidia/cuda:10.2-base
+        command: nvidia-smi
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                      - driver: nvidia
+                        count: 1
+                        capabilities: [gpu]
         
 

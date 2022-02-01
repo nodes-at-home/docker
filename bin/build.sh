@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ -x docker-compose ]
+then
+    COMPOSE=docker-compose
+else
+    COMPOSE="docker compose"
+fi
+
 [ -z "$1" ] && echo "ERROR: first parameter must bee the app to build!" && exit
 
 pushd "$HOME/docker/docker"
@@ -9,7 +16,7 @@ STACK=`grep "${APP}:$" ./*/docker-compose.yaml | cut -d/ -f2`
 
 echo "Building $APP in $STACK"
 
-[ -n "$APP" ] && [ -n "$STACK" ] && [ -d ./"$TACK" ] && cd $STACK && docker-compose build $APP && cd -
+[ -n "$APP" ] && [ -n "$STACK" ] && [ -d ./"$TACK" ] && cd $STACK && $COMPOSE build $APP && cd -
 
 popd
 

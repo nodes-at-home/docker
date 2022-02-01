@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ -x docker-compose ]
+then
+    COMPOSE=docker-compose
+else
+    COMPOSE="docker compose"
+fi
+
 [ -z "$1" ] && echo "ERROR: first parameter must bee the app to restart!" && exit
 
 pushd "$HOME/docker/docker"
@@ -9,7 +16,7 @@ STACK=`grep "${APP}:$" ./*/docker-compose.yaml | cut -d/ -f2`
 
 echo "Restarting $APP in $STACK"
 
-[ -n "$APP" ] && [ -n "$STACK" ] && [ -d ./"$TACK" ] && cd $STACK && docker-compose stop $APP && docker-compose up -d --no-deps $APP && cd -
+[ -n "$APP" ] && [ -n "$STACK" ] && [ -d ./"$TACK" ] && cd $STACK && $COMPOSE stop $APP && $COMPOSE up -d --no-deps $APP && cd -
 
 popd
 

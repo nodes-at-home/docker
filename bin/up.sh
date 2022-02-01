@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ -x docker-compose ]
+then
+    COMPOSE=docker-compose
+else
+    COMPOSE="docker compose"
+fi
+
 [ -z "$1" ] && echo "ERROR: first parameter must be the stack to start!" && exit 1
 
 pushd "$HOME/docker/docker"
@@ -8,7 +15,7 @@ STACK=$1
 
 echo "Bringing up $STACK"
 
-[ -n "$STACK" ] && [ -d ./"$TACK" ] && cd $STACK && docker-compose up -d && cd - && popd && exit 0
+[ -n "$STACK" ] && [ -d ./"$TACK" ] && cd $STACK && $COMPOSE up -d && cd - && popd && exit 0
 
 popd
 

@@ -139,7 +139,7 @@ http:
         pokemonnet:
             ipWhiteList:
                 sourceRange:
-                  # - 0.0.0.0/0         # no restriction (necessary for docker for windows under wsl2)
+                  - 0.0.0.0/0         # no restriction (necessary for docker for windows under wsl2)
                   - 192.168.2.0/24
                   - 192.168.43.0/24     # for clients from net over xperia
         pibrew:

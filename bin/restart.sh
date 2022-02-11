@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -x docker-compose ]
+if [ -x /usr/bin/docker-compose ]
 then
     COMPOSE=docker-compose
 else

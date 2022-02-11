@@ -19,7 +19,7 @@ networks:
 services:
 
   mosquitto:
-    image: eclipse-mosquitto
+    image: eclipse-mosquitto:2.0.11
     container_name: mosquitto
     restart: "no"
     environment:

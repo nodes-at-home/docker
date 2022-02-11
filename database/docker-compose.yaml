@@ -59,7 +59,8 @@ services:
           - /var/run/docker.sock:/var/run/docker.sock
           - ./telegraf_logs.conf:/etc/telegraf/telegraf.conf:ro
           # telegraf container dont know syslog
-          - /var/log/syslog:/var/log/syslog
+          # - /var/log/syslog:/logs/syslog
+          - /var/log/:/logs/
         networks:
           - proxy
           - backbone

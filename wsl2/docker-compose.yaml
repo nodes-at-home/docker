@@ -16,8 +16,10 @@ networks:
 
 services:
 
+    ### free business license for 5 nodes
     portainer:
-        image: portainer/portainer-ce
+        # image: portainer/portainer-ce
+        image: portainer/portainer-ee:latest
         container_name: portainer
         restart: always
         volumes:
@@ -28,6 +30,7 @@ services:
           # - 8000:8000
         networks:
           - admin
+
       
     qtcreator:
         build:

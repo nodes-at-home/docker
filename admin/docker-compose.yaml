@@ -8,36 +8,85 @@ version: "3.3"
 
 networks:
 
-  admin:
-    external:
-        name: admin
+    admin:
+        external:
+            name: admin
+
+    proxy:
+        external:
+            name: proxy
 
 services:
 
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    restart: "no"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    #  - "~/docker/watchtower/config.json:/config.json"
-    command: --debug --include-stopped --schedule "0 0 1 * * ${WATCHTOWER_SCHEDULE_DAY}"     # 6 = saturday morning 1:00 utc, production mode
-    # more options
-    #   --monitor-only -> without container restart
-    #   --interval 60  -> every minute
-    environment:
-      - TZ="Europe/Berlin"
-      - WATCHTOWER_NOTIFICATIONS=email
-      - WATCHTOWER_NOTIFICATION_EMAIL_FROM=${HOSTNAME}@jungierek.de 
-      - WATCHTOWER_NOTIFICATION_EMAIL_TO=${WATCHTOWER_MAIL_TO}
-      - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=${WATCHTOWER_MAIL_SERVER}
-      - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=${WATCHTOWER_MAIL_SERVER_PORT}
-      - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=${WATCHTOWER_MAIL_USER}
-      - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=${WATCHTOWER_MAIL_PW}
-      - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
-    networks:
-      - admin
+    watchtower:
+        image: containrrr/watchtower
+        container_name: watchtower
+        restart: "no"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - "~/.docker/config.json:/config.json"
+        command: --debug --include-stopped --schedule "0 0 1 * * ${WATCHTOWER_SCHEDULE_DAY}"     # 6 = saturday morning 1:00 utc, production mode
+            # more options
+            #   --monitor-only -> without container restart
+            #   --interval 60  -> every minute
+            #   --trace
+        environment:
+          - TZ="Europe/Berlin"
+          - WATCHTOWER_NOTIFICATIONS=email
+          - WATCHTOWER_NOTIFICATION_EMAIL_FROM=${HOSTNAME}@jungierek.de
+          - WATCHTOWER_NOTIFICATION_EMAIL_TO=${WATCHTOWER_MAIL_TO}
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=${WATCHTOWER_MAIL_SERVER}
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=${WATCHTOWER_MAIL_SERVER_PORT}
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=${WATCHTOWER_MAIL_USER}
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=${WATCHTOWER_MAIL_PW}
+          - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
+        networks:
+          - admin
 
+    # remove images who are older than ...
+    # docker system prune --filter "until=240h"
 
-# remove images who are older than ...
-# docker system prune --filter "until=240h"
+    registry:
+        image: registry:2
+        container_name: registry
+        restart: "no"
+        environment:
+            TZ: Europe/Berlin
+            # REGISTRY_LOG_LEVEL: debug
+            REGISTRY_AUTH:
+            REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '["*"]'
+            REGISTRY_STORAGE_DELETE_ENABLED: "true"
+            REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '["HEAD", "GET", "OPTIONS", "DELETE"]'
+        volumes:
+          - ~/docker/registry:/var/lib/registry
+          - ./registry_config.yaml:/var/lib/registry/registry_config.yaml
+        networks:
+          - proxy
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+
+    # https://github.com/Joxit/docker-registry-ui
+    registryui:
+        image: joxit/docker-registry-ui:latest
+        container_name: registryui
+        environment:
+          - TZ=Europe/Berlin
+          - DELETE_IMAGES=true
+          - REGISTRY_TITLE=${HOSTNAME}
+          - REGISTRY_URL=https://${HOSTNAME}:5000
+          - SINGLE_REGISTRY=true
+          - SHOW_CONTENT_DIGEST=true
+          # - NGINX_PROXY_PASS_URL=https://${HOSTNAME}:5000/register
+        depends_on:
+          - registry
+        networks:
+          - proxy
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+
+    # interessantes Projekt
+    # https://github.com/goharbor/harbor

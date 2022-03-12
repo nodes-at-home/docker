@@ -53,6 +53,9 @@ entryPoints:
     syslog_udp:
         address: ":514/udp"
 
+    registry_secure:
+        address: ":5000"
+
     hass_secure:
         address: ":8123"
 

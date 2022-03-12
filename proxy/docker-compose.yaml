@@ -41,6 +41,7 @@ services:
       - "10002:10002"       # luatrace secure
       - "514:514"           # syslog
       - "514:514/udp"       # syslog
+      - "5000:5000"         # private docker registry secure
       # - "6514:6514"         # syslog secure
       - "8123:8123"         # home assistant secure
       - "8086:8086"         # influxdb secure

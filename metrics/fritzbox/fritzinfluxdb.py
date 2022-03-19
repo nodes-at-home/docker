@@ -218,7 +218,7 @@ def read_config(filename):
         exit(1)
 
     try:
-        config = configparser.ConfigParser()
+        config = configparser.ConfigParser(os.environ)
         config.read(filename)
     except configparser.Error as e:
         logging.error("Config Error: %s", str(e))
@@ -274,6 +274,19 @@ def main():
 
     # read config from ini file
     config = read_config(args.config_file)
+
+    logging.debug ( "CONFIG values")
+    logging.debug("url='%s'" % config.get('influx2', 'url',raw=False))
+    logging.debug("token='%s'" % config.get('influx2', 'token',raw=False))
+    logging.debug("org='%s'" % config.get('influx2', 'org',raw=False))
+    logging.debug("bucket='%s'" % config.get('influx2', 'bucket',raw=False))
+    logging.debug("host='%s'" % config.get('fritzbox', 'host',raw=False))
+    logging.debug("port='%s'" % config.get('fritzbox', 'port',raw=False))
+    logging.debug("username='%s'" % config.get('fritzbox', 'username',raw=False))
+    logging.debug("password='%s'" % config.get('fritzbox', 'password',raw=False))
+    logging.debug("timeout='%s'" % config.get('fritzbox', 'timeout',raw=False))
+    logging.debug("ssl='%s'" % config.get('fritzbox', 'ssl',raw=False))
+
 
     # set up influxdb handler
     influxdb_client = None

@@ -86,10 +86,17 @@ services:
     restart: "no"
     environment:
       - TZ=Europe/Berlin
+      - INFLUX_TOKEN
+      - INFLUX_ORG
+      - FRITZBOX_HOST
+      - FRITZBOX_USERNAME
+      - FRITZBOX_PASSWORD
     labels:
       - "traefik.enable=false"
       - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"
+    volumes:
+      - "~/docker/docker/metrics/fritzbox:/app"
     networks:
       - backbone
 

@@ -19,7 +19,7 @@ networks:
 services:
 
   mosquitto:
-    image: eclipse-mosquitto:2.0.11
+    image: ${DOCKER_REGISTRY}eclipse-mosquitto:2.0.11
     container_name: mosquitto
     restart: "no"
     environment:
@@ -37,7 +37,7 @@ services:
       - proxy
 
   hass:
-    image: homeassistant/home-assistant:stable
+    image: ${DOCKER_REGISTRY}homeassistant/home-assistant:stable
     container_name: hass
     restart: "no"
     environment:
@@ -59,8 +59,8 @@ services:
       - backbone
 
   nginx:
-    image: tobi312/rpi-nginx
-    #image: nginx
+    # image: ${DOCKER_REGISTRY}tobi312/rpi-nginx
+    image: ${DOCKER_REGISTRY}nginx
     container_name: nginx
     restart: "no"
     environment:
@@ -78,7 +78,7 @@ services:
       - proxy
 
   nodered:
-    image: nodered/node-red
+    image: ${DOCKER_REGISTRY}nodered/node-red
     container_name: nodered
     restart: "no"
     depends_on:

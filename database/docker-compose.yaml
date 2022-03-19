@@ -19,7 +19,7 @@ networks:
 services:
 
     influxdb:
-        image: influxdb:2.0
+        image: ${DOCKER_REGISTRY}influxdb:2.0
         container_name: influxdb
         restart: "no"
         environment:
@@ -39,7 +39,7 @@ services:
           - backbone
 
     telegraf_logs:
-        image: telegraf:latest
+        image: ${DOCKER_REGISTRY}telegraf:latest
         container_name: telegraf_logs
         restart: "no"
         environment:
@@ -66,7 +66,7 @@ services:
           - backbone
 
     telegraf:
-        image: telegraf:latest
+        image: ${DOCKER_REGISTRY}telegraf:latest
         container_name: telegraf
         restart: "no"
         environment:

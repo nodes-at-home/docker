@@ -19,7 +19,7 @@ networks:
 services:
 
   traefik:
-    image: traefik
+    image: ${DOCKER_REGISTRY}traefik
     container_name: traefik
     restart: "no"
     environment:
@@ -51,7 +51,7 @@ services:
 
   whoami:
     # a container that exposes an API to show its IP address
-    image: containous/whoami
+    image: ${DOCKER_REGISTRY}containous/whoami
     container_name: whoami
     restart: "no"
     environment:

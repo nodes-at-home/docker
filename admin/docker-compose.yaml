@@ -19,7 +19,7 @@ networks:
 services:
 
     watchtower:
-        image: containrrr/watchtower
+        image: ${DOCKER_REGISTRY}containrrr/watchtower
         container_name: watchtower
         restart: "no"
         volumes:
@@ -47,7 +47,7 @@ services:
     # docker system prune --filter "until=240h"
 
     registry:
-        image: registry:2
+        image: ${DOCKER_REGISTRY}registry:2
         container_name: registry
         restart: "no"
         environment:
@@ -69,7 +69,7 @@ services:
 
     # https://github.com/Joxit/docker-registry-ui
     registryui:
-        image: joxit/docker-registry-ui:latest
+        image: ${DOCKER_REGISTRY}joxit/docker-registry-ui:latest
         container_name: registryui
         environment:
           - TZ=Europe/Berlin

@@ -23,7 +23,7 @@ networks:
 services:
 
   prometheus:
-    image: prom/prometheus
+    image: ${DOCKER_REGISTRY}prom/prometheus
     container_name: prometheus
     restart: "no"
     environment:
@@ -42,7 +42,7 @@ services:
       - metrics
 
   cadvisor:
-    image: zcube/cadvisor
+    image: ${DOCKER_REGISTRY}zcube/cadvisor
     container_name: cadvisor
     restart: "no"
     environment:
@@ -61,7 +61,7 @@ services:
       - metrics
 
   node-exporter:
-    image: prom/node-exporter
+    image: ${DOCKER_REGISTRY}prom/node-exporter
     command: "--collector.textfile.directory=/data"
     container_name: node-exporter
     restart: "no"
@@ -81,7 +81,7 @@ services:
       context: ./fritzbox
       labels:
         com.centurylinklabs.watchtower.enable: "false"
-    image: fritzbox
+    image: ${DOCKER_REGISTRY}fritzbox
     container_name: fritzbox
     restart: "no"
     environment:
@@ -101,7 +101,7 @@ services:
       - backbone
 
   grafana:
-    image: grafana/grafana
+    image: ${DOCKER_REGISTRY}grafana/grafana
     container_name: grafana
     restart: "no"
     environment:

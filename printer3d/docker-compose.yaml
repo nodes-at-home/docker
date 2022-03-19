@@ -19,7 +19,7 @@ services:
       context: ./octoprint
       labels:
         com.centurylinklabs.watchtower.enable: "false"
-    image: octoprint
+    image: ${DOCKER_REGISTRY}octoprint
     container_name: octoprint
     restart: "no"
     environment:

@@ -1,8 +1,9 @@
 # junand 27.10.2019
 
-FROM nunofgs/octoprint
+FROM octoprint/octoprint
 
 RUN apt-get install -y --no-install-recommends \
+    supervisor \
     socat
 
 COPY supervisord_socat.conf /tmp

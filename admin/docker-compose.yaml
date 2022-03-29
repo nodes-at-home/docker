@@ -63,6 +63,7 @@ services:
         networks:
           - proxy
         labels:
+          - "com.centurylinklabs.watchtower.enable=false"
           - "traefik.enable=true"
           - "traefik.http.routers.dontuse.entrypoints=dontuse"
           - "traefik.docker.network=proxy"

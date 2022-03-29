@@ -19,7 +19,7 @@ networks:
 services:
 
   mosquitto:
-    image: ${DOCKER_REGISTRY}eclipse-mosquitto:2.0.11
+    image: ${DOCKER_REGISTRY}eclipse-mosquitto:latest
     container_name: mosquitto
     restart: "no"
     environment:

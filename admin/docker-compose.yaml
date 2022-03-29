@@ -59,7 +59,8 @@ services:
             REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '["HEAD", "GET", "OPTIONS", "DELETE"]'
         volumes:
           - ~/docker/registry:/var/lib/registry
-          # - ./registry_config.yaml:/var/lib/registry/registry_config.yaml
+          # for garbage collection script
+          - ./registry_config.yaml:/var/lib/registry/registry_config.yaml
         networks:
           - proxy
         labels:

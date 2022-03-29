@@ -59,7 +59,8 @@ services:
       - backbone
 
   nginx:
-    # image: ${DOCKER_REGISTRY}tobi312/rpi-nginx
+    build:
+      context: ./nginx
     image: ${DOCKER_REGISTRY}nginx
     container_name: nginx
     restart: "no"
@@ -70,8 +71,6 @@ services:
       - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"
     volumes:
-      - "~/docker/docker/nodesathome/nginx.conf:/etc/nginx/nginx.conf"
-      #- "~/docker/nginx/log:/var/log/nginx"
       - "~/docker/nginx/html:/usr/share/nginx/html"
       - "~/docker/nginx/tileboard:/usr/share/nginx/html/tileboard"
     networks:

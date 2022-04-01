@@ -61,7 +61,7 @@ services:
   nginx:
     build:
       context: ./nginx
-    image: ${DOCKER_REGISTRY}nginx
+    image: ${DOCKER_REGISTRY}my_nginx
     container_name: nginx
     restart: "no"
     environment:

@@ -17,7 +17,7 @@ services:
   octoprint:
     build:
       context: ./octoprint
-    image: ${DOCKER_REGISTRY}octoprint
+    image: ${DOCKER_REGISTRY}my_octoprint
     container_name: octoprint
     restart: "no"
     environment:

@@ -80,10 +80,10 @@ server:
 system:
   actions:
   - action: restart_socat
-    command: supervisorctl restart socat
+    command: s6-svc -d /var/run/s6/services/socat; s6-svc -u /var/run/s6/services/socat
     name: Restart socat
   - action: stop_socat
-    command: supervisorctl stop socat
+    command: s6-svc -d /var/run/s6/services/socat
     name: Stop socat
 temperature:
   profiles:

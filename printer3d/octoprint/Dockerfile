@@ -3,8 +3,7 @@
 FROM octoprint/octoprint
 
 RUN apt-get install -y --no-install-recommends \
-    supervisor \
     socat
 
-COPY supervisord_socat.conf /tmp
-RUN cat /tmp/supervisord_socat.conf >> /etc/supervisor/supervisord.conf; rm -f /tmp/supervisord_socat.conf
+COPY socat_run /tmp
+RUN mkdir -p /etc/services.d/socat; mv /tmp/socat_run /etc/services.d/socat/run; touch /etc/services.d/socat/down

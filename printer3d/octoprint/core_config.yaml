@@ -95,6 +95,10 @@ temperature:
     chamber: null
     extruder: 180
     name: PLA
+  - bed: 0
+    chamber: 0
+    extruder: 250
+    name: Mount
 webcam:
   flipH: true
   flipV: true

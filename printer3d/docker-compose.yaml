@@ -23,6 +23,7 @@ services:
     environment:
       - TZ=Europe/Berlin
     labels:
+      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
       - "traefik.enable=true"
       - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"

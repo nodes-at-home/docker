@@ -92,6 +92,7 @@ services:
       - FRITZBOX_USERNAME
       - FRITZBOX_PASSWORD
     labels:
+      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
       - "traefik.enable=false"
       - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"

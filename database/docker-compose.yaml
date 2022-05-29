@@ -19,7 +19,7 @@ networks:
 services:
 
     influxdb:
-        image: ${DOCKER_REGISTRY}influxdb:2.0
+        image: ${DOCKER_REGISTRY}influxdb:latest
         container_name: influxdb
         restart: "no"
         environment:

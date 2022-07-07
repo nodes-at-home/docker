@@ -51,6 +51,8 @@ services:
       - mosquitto
     expose:
       - "8123"
+    devices:
+      - "/dev/serial/by-id/usb-BECKER-ANTRIEBE_GmbH_CDC_RS232_v125_Centronic-if00:/dev/beckercentronicusb"
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "~/docker/home-assistant:/config"

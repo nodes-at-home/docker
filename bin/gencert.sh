@@ -17,7 +17,7 @@
 WITH_CA=false
 PASSWORD=hallo
 CA=nodesathome
-SERVERS="nodesathome1 nodesathome2 pibrew pitouch pivpn pisniffer Andreas-Surface"
+SERVERS="nodesathome1 nodesathome2 pibrew pitouch pivpn pisniffer Andreas-Surface piflower pibarcode"
 
 POSITIONAL=()
 

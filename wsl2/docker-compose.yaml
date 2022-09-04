@@ -25,6 +25,8 @@ services:
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - portainer_data:/data
+          - "~/docker/traefik/ssl:/etc/ssl/nodesathome"
+        command: --sslkey /etc/ssl/nodesathome/certificate-key-${HOSTNAME}.pem --sslcert /etc/ssl/nodesathome/certificate-pub-${HOSTNAME}.pem
         ports:
           - 9443:9443
         networks:

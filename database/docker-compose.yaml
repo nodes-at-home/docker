@@ -42,6 +42,12 @@ services:
         image: ${DOCKER_REGISTRY}telegraf:latest
         container_name: telegraf_logs
         restart: "no"
+        # https://www.influxdata.com/blog/docker-run-telegraf-as-non-root/
+        # telegraf is running at user telegraf, so we have set the conatiner user and add to him all necessary groups
+        user: telegraf
+        group_add:
+          - "${GROUP_ID_VAR_LOG_SYSLOG}"
+          - "${GROUP_ID_VAR_RUN_DOCKER_SOCK}"
         environment:
           - TZ=Europe/Berlin
           - INFLUX_TOKEN=${INFLUX_TOKEN}

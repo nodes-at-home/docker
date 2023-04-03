@@ -92,3 +92,19 @@ services:
 
     # interessantes Projekt
     # https://github.com/goharbor/harbor
+
+    # https://github.com/sudo-bot/nut-upsd
+    upsd:
+        image: ${DOCKER_REGISTRY}botsudo/nut-upsd:latest
+        container_name: upsd
+        networks:
+          - proxy
+        labels:
+          - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
+          - "traefik.enable=true"
+          - "traefik.tcp.routers.mqtt.tls=false"
+          - "traefik.docker.network=proxy"
+        expose:
+          - "3493"
+        devices:
+          - /dev/bus/usb/001/004:/dev/bus/usb/001/004

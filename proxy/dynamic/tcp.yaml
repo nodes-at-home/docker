@@ -27,6 +27,12 @@ tcp:
             rule: HostSNI(`*`)
             service: nodered-trace
 
+        upsd:
+            entryPoints:
+              - 'upsd'
+            rule: HostSNI(`*`)
+            service: upsd-admin@docker
+
         trace_secure:
             entryPoints:
               - trace_secure

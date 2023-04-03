@@ -45,6 +45,7 @@ services:
       # - "6514:6514"         # syslog secure
       - "8123:8123"         # home assistant secure
       - "8086:8086"         # influxdb secure
+      - "3493:3493"         # upsd
     networks:
       - proxy
       - metrics

@@ -7,7 +7,9 @@
 # https://likegeeks.com/linux-bash-scripting-awesome-guide-part3/
 # Options:
 #   -p <password>
-#   -c with ca cert creation
+#   -c ca name
+#   -w with ca cert creation
+#   -s server list (spaceseparated)
 #   parameter: server1 server2 ..., without default list
 
 # https://msol.io/blog/tech/create-a-self-signed-ecc-certificate/
@@ -60,8 +62,9 @@ echo "WITH_CA       = ${WITH_CA}"
 echo "CA            = ${CA}"
 echo "SERVERS       = ${SERVERS}"
 
-DAYS_CA=1095
-DAYS_CERT=365
+# 5 years
+DAYS_CA=1825
+DAYS_CERT=1825
 
 AES_OPT="-aes128"
 SHA_OPT="-sha256"

@@ -79,8 +79,6 @@ services:
   fritzbox:
     build:
       context: ./fritzbox
-      #labels:
-      #  com.centurylinklabs.watchtower.enable: "false"
     image: ${DOCKER_REGISTRY}my_fritzbox
     container_name: fritzbox
     restart: "no"
@@ -94,8 +92,6 @@ services:
     labels:
       - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
       - "traefik.enable=false"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=proxy"
     volumes:
       - "~/docker/docker/metrics/fritzbox:/app"
     networks:

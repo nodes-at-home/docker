@@ -107,4 +107,7 @@ services:
         expose:
           - "3493"
         devices:
+          # nodesathome2
           - /dev/bus/usb/001/004:/dev/bus/usb/001/004
+          # nodesathome1
+          - /dev/bus/usb/001/005:/dev/bus/usb/001/005

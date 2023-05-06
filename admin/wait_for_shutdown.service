@@ -1,0 +1,14 @@
+[Unit]
+Description=wait for shutdown signal from home assistant Service
+After=network.target
+
+[Service]
+ExecStart=/home/pi/docker/docker/admin/wait_for_shutdown.sh
+WorkingDirectory=/home/pi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

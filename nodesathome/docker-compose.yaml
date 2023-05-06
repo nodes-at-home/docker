@@ -57,6 +57,7 @@ services:
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "~/docker/home-assistant:/config"
+      - "/var/tmp/shutdown_signal:/var/tmp/shutdown_signal"
     networks:
       - proxy
       - backbone

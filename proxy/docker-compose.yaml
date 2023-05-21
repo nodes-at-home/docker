@@ -23,7 +23,7 @@ services:
     container_name: traefik
     restart: "no"
     environment:
-      - TZ="Europe/Berlin"
+      - TZ=Europe/Berlin
       - PARENT_HOSTNAME=${HOSTNAME}
     depends_on:
       - whoami
@@ -56,7 +56,7 @@ services:
     container_name: whoami
     restart: "no"
     environment:
-      - TZ="Europe/Berlin"
+      - TZ=Europe/Berlin
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dontuse.entrypoints=dontuse"

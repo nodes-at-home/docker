@@ -31,7 +31,7 @@ services:
             #   --interval 60  -> every minute
             #   --trace
         environment:
-          - TZ="Europe/Berlin"
+          - TZ=Europe/Berlin
           - WATCHTOWER_NOTIFICATIONS=email
           - WATCHTOWER_NOTIFICATION_EMAIL_FROM=${HOSTNAME}@jungierek.de
           - WATCHTOWER_NOTIFICATION_EMAIL_TO=${WATCHTOWER_MAIL_TO}
@@ -104,6 +104,8 @@ services:
           - "traefik.enable=true"
           - "traefik.tcp.routers.mqtt.tls=false"
           - "traefik.docker.network=proxy"
+        environment:
+          - TZ=Europe/Berlin
         expose:
           - "3493"
         devices:

@@ -1,0 +1,43 @@
+###
+### junand 19.05.2023
+###
+
+devices:
+
+    # sh10rt master winet for test
+  # - modbus:
+        # url: 192.168.2.188:502
+        # timeout: 10
+        # connection_time: 1
+    # listen:
+        # bind: tcp://0.0.0.0:9000
+
+    # sh10rt master
+  - modbus:
+        url: 192.168.2.184:502
+        timeout: 10
+        connection_time: 1
+    listen:
+        bind: tcp://0.0.0.0:5021
+
+    # sh10rt slave
+  - modbus:
+        url: 192.168.2.186:502
+        timeout: 10
+        connection_time: 1
+    listen:
+        bind: tcp://0.0.0.0:5022
+
+logging:
+    version: 1
+    formatters:
+        standard:
+            format: "%(asctime)s %(levelname)8s %(name)s: %(message)s"
+    handlers:
+        console:
+            class: logging.StreamHandler
+            formatter: standard
+    root:
+        handlers: ['console']
+        # level: DEBUG
+        level: INFO

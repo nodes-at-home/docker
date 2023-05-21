@@ -100,3 +100,21 @@ services:
     networks:
       - proxy
       - backbone
+
+  modbus-proxy:
+    build:
+      context: ./modbus-proxy
+    image: ${DOCKER_REGISTRY}my_modbus-proxy
+    container_name: modbus-proxy
+    restart: "no"
+    environment:
+      - TZ=Europe/Berlin
+    labels:
+      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
+      - "traefik.enable=false"
+    ports:
+      # - "9000:9000"             # sh10rt master via Winet
+      - "5021:5021"             # sh10rt master
+      - "5022:5022"             # sh10rt slave
+    networks:
+      - proxy

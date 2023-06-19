@@ -5,7 +5,7 @@
 #
 # install instructions
 # (1) install inotify-tools before
-# (2) sudo cp wait_for_shutdown /lib/systemd/system and change owner/rights
+# (2) sudo cp wait_for_shutdown.service /lib/systemd/system and change owner/rights
 # (3) sudo systemctl daemon-reload
 # (4) sudo systemctl enable wait_for_shutdown.service
 # (5) sudo systemctl start wait_for_shutdown.service
@@ -24,6 +24,6 @@ while inotifywait -e close_write ${SIGNAL_FILE}; do
   if [ "$signal" == "shutdown" ]; then 
     echo "done" > ${SIGNAL_FILE}
     logger "shutting down because of ups shutdown signal from home assistant"
-    shutdown -h now
+    sudo shutdown -h now
   fi
 done

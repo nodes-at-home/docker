@@ -135,6 +135,16 @@ http:
             tls:
                 options: intermediate
 
+        vscode:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/vscode`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: vscode-admin@docker
+            tls:
+                options: intermediate
 
     middlewares:
         octoprint_headers:

@@ -4,28 +4,23 @@
 
 # metrics/docker-compose.yaml
 
-version: '3.8'
-
 networks:
 
   proxy:
-    external:
-        name: proxy
+    external: true
 
   metrics:
-    external:
-        name: metrics
+    external: true
 
   backbone:
-    external:
-        name: backbone
+    external: true
 
 services:
 
   prometheus:
     image: ${DOCKER_REGISTRY}prom/prometheus
     container_name: prometheus
-    restart: "no"
+    restart: "always"
     environment:
       - TZ=Europe/Berlin
     labels:
@@ -44,7 +39,7 @@ services:
   cadvisor:
     image: ${DOCKER_REGISTRY}zcube/cadvisor
     container_name: cadvisor
-    restart: "no"
+    restart: "always"
     environment:
       - TZ=Europe/Berlin
     labels:
@@ -64,7 +59,7 @@ services:
     image: ${DOCKER_REGISTRY}prom/node-exporter
     command: "--collector.textfile.directory=/data"
     container_name: node-exporter
-    restart: "no"
+    restart: "always"
     environment:
       - TZ=Europe/Berlin
     labels:
@@ -81,7 +76,7 @@ services:
       context: ./fritzbox
     image: ${DOCKER_REGISTRY}my_fritzbox
     container_name: fritzbox
-    restart: "no"
+    restart: "unless-stopped"
     environment:
       - TZ=Europe/Berlin
       - INFLUX_TOKEN
@@ -100,7 +95,7 @@ services:
   grafana:
     image: ${DOCKER_REGISTRY}grafana/grafana
     container_name: grafana
-    restart: "no"
+    restart: "unless-stopped"
     environment:
       - TZ=Europe/Berlin
       - GF_SERVER_DOMAIN=${HOSTNAME}

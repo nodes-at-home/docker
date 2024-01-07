@@ -4,15 +4,12 @@
 
 # wsl2/docker-compose.yaml
 
-version: "3.3"
-
 volumes:
     portainer_data:
 
 networks:
     admin:
-        external:
-            name: admin
+        external: true
 
 services:
 

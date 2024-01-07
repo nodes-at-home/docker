@@ -4,17 +4,13 @@
 
 # admin/docker-compose.yaml
 
-version: "3.3"
-
 networks:
 
     admin:
-        external:
-            name: admin
+        external: true
 
     proxy:
-        external:
-            name: proxy
+        external: true
 
 services:
 

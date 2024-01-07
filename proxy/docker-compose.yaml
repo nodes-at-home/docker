@@ -4,24 +4,20 @@
 
 # proxy/docker-compose.yaml
 
-version: '3.3'
-
 networks:
 
   proxy:
-    external:
-        name: proxy
+    external: true
 
   metrics:
-    external:
-        name: metrics
+    external: true
 
 services:
 
   traefik:
     image: ${DOCKER_REGISTRY}traefik
     container_name: traefik
-    restart: "no"
+    restart: "always"
     environment:
       - TZ=Europe/Berlin
       - PARENT_HOSTNAME=${HOSTNAME}
@@ -54,7 +50,7 @@ services:
     # a container that exposes an API to show its IP address
     image: ${DOCKER_REGISTRY}containous/whoami
     container_name: whoami
-    restart: "no"
+    restart: "unless-stopped"
     environment:
       - TZ=Europe/Berlin
     labels:

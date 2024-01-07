@@ -4,13 +4,10 @@
 
 # printer3d/docker-compose.yaml
 
-version: '3.3'
-
 networks:
 
   proxy:
-    external:
-        name: proxy
+    external: true
         
 services:
 
@@ -19,7 +16,7 @@ services:
       context: ./octoprint
     image: ${DOCKER_REGISTRY}my_octoprint
     container_name: octoprint
-    restart: "no"
+    restart: "unless-stopped"
     environment:
       - TZ=Europe/Berlin
     labels:

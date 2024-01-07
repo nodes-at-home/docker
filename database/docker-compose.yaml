@@ -4,24 +4,20 @@
 
 # database/docker-compose.yaml
 
-version: '3.8'
-
 networks:
 
   proxy:
-    external:
-        name: proxy
+    external: true
 
   backbone:
-    external:
-        name: backbone
+    external: true
 
 services:
 
     influxdb:
         image: ${DOCKER_REGISTRY}influxdb:latest
         container_name: influxdb
-        restart: "no"
+        restart: "always"
         environment:
           - TZ=Europe/Berlin
           - INFLUXDB_REPORTING_DISABLED=true
@@ -41,7 +37,7 @@ services:
     telegraf_logs:
         image: ${DOCKER_REGISTRY}telegraf:latest
         container_name: telegraf_logs
-        restart: "no"
+        restart: "unless-stopped"
         # https://www.influxdata.com/blog/docker-run-telegraf-as-non-root/
         # telegraf is running at user telegraf, so we have set the conatiner user and add to him all necessary groups
         user: telegraf
@@ -74,7 +70,7 @@ services:
     telegraf:
         image: ${DOCKER_REGISTRY}telegraf:latest
         container_name: telegraf
-        restart: "no"
+        restart: "unless-stopped"
         environment:
           - TZ=Europe/Berlin
           - INFLUX_TOKEN=${INFLUX_TOKEN}

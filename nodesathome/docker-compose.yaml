@@ -4,24 +4,20 @@
 
 # nodesathome/docker-compose.yaml
 
-version: '3.3'
-
 networks:
 
   proxy:
-    external:
-        name: proxy
+    external: true
 
   backbone:
-    external:
-        name: backbone
+    external: true
 
 services:
 
   mosquitto:
     image: ${DOCKER_REGISTRY}eclipse-mosquitto:latest
     container_name: mosquitto
-    restart: "no"
+    restart: "always"
     environment:
       - TZ=Europe/Berlin
     labels:
@@ -39,7 +35,7 @@ services:
   hass:
     image: ${DOCKER_REGISTRY}homeassistant/home-assistant:stable
     container_name: hass
-    restart: "no"
+    restart: "unless-stopped"
     environment:
       - TZ=Europe/Berlin
       - PARENT_HOSTNAME=${HOSTNAME}
@@ -68,7 +64,7 @@ services:
       context: ./nginx
     image: ${DOCKER_REGISTRY}my_nginx
     container_name: nginx
-    restart: "no"
+    restart: "unless-stopped"
     environment:
       - TZ=Europe/Berlin
     labels:
@@ -85,7 +81,7 @@ services:
   nodered:
     image: ${DOCKER_REGISTRY}nodered/node-red
     container_name: nodered
-    restart: "no"
+    restart: "unless-stopped"
     depends_on:
       - mosquitto
     environment:
@@ -107,7 +103,7 @@ services:
       context: ./modbus-proxy
     image: ${DOCKER_REGISTRY}my_modbus-proxy
     container_name: modbus-proxy
-    restart: "no"
+    restart: "always"
     environment:
       - TZ=Europe/Berlin
     labels:

@@ -4,13 +4,10 @@
 
 # printer3d/docker-compose.yaml
 
-version: '3.8'
-
 networks:
 
     proxy:
-        external:
-            name: proxy
+        external: true
         
 services:
 
@@ -21,3 +18,4 @@ services:
             com.centurylinklabs.watchtower.enable: "false"
         image: mkdocs-material
         container_name: build-mkdocs-material
+        restart: "no"

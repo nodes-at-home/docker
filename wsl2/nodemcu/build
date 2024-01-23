@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd /opt/nodemcu-firmware
+
+if [ -f sdkconfig.defaults ]; then
+    /opt/build-esp32
+else
+    /opt/build-esp8266
+fi

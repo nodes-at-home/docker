@@ -47,6 +47,21 @@ services:
         volumes:
           - ~/GIT/nodemcu-firmware-esp32:/opt/nodemcu-firmware
 
+    nodemcu-esp8266:
+        build:
+          context: ./nodemcu
+          labels:
+            com.centurylinklabs.watchtower.enable: "false"
+        image: nodemcu-esp8266
+        container_name: nodemcu-esp8266
+        restart: "no"
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/GIT/nodemcu-firmware-esp8266:/opt/nodemcu-firmware
+
     qtcreator:
         build:
           context: ./qtcreator

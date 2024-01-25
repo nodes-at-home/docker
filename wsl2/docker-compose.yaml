@@ -37,7 +37,7 @@ services:
           context: ./nodemcu
           labels:
             com.centurylinklabs.watchtower.enable: "false"
-        image: nodemcu-esp32
+        image: nodemcu-builder
         container_name: nodemcu-esp32
         restart: "no"
         environment:
@@ -52,7 +52,7 @@ services:
           context: ./nodemcu
           labels:
             com.centurylinklabs.watchtower.enable: "false"
-        image: nodemcu-esp8266
+        image: nodemcu-builder
         container_name: nodemcu-esp8266
         restart: "no"
         environment:

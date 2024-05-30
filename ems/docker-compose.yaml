@@ -1,0 +1,36 @@
+###
+### junand 11.03.2020
+###
+
+# nodesathome/docker-compose.yaml
+
+networks:
+
+  proxy:
+    external: true
+
+services:
+
+  evcc:
+    build:
+      context: ./evcc
+    image: ${DOCKER_REGISTRY}my_evcc
+    container_name: evcc
+    restart: "unless-stopped"
+    environment:
+      - TZ=Europe/Berlin
+    labels:
+      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
+      - "traefik.enable=true"
+      - "traefik.http.routers.dontuse.entrypoints=dontuse"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.services.evcc-ems.loadbalancer.server.port=7070"
+    expose:
+      - "7070"
+    volumes:
+      - "~/docker/docker/ems/evcc.yaml:/etc/evcc.yaml"
+      - "~/docker/evcc/.evcc:/root/.evcc"
+    networks:
+      - proxy
+    
+    

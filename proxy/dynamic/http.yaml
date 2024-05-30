@@ -146,6 +146,17 @@ http:
             tls:
                 options: intermediate
 
+        evcc:
+            entryPoints:
+              - 'evcc_secure'
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: evcc-ems@docker
+            tls:
+                options: intermediate
+
     middlewares:
         octoprint_headers:
             headers:

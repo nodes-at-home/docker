@@ -107,6 +107,6 @@ do
     # selfsigned certificate
     # -> invariant to rsa vs. ec
     echo "STEP 3 $server -> sign certificate"
-    openssl x509 -req -extfile <(printf "subjectAltName=DNS:${server},DNS:${server}.fritz.box") -in certificate-${server}.csr -CA ca-root-${CA}.pem -CAkey ca-key-${CA}.pem -passin ${PASS} -CAcreateserial -out certificate-pub-${server}.pem -days ${DAYS_CERT} ${SHA_OPT}
+    openssl x509 -req -extfile <(printf "subjectAltName=DNS:${server},DNS:${server}.fritz.box,DNS:localhost,IP:127.0.0.1") -in certificate-${server}.csr -CA ca-root-${CA}.pem -CAkey ca-key-${CA}.pem -passin ${PASS} -CAcreateserial -out certificate-pub-${server}.pem -days ${DAYS_CERT} ${SHA_OPT}
 
 done

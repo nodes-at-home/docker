@@ -1,3 +1,6 @@
 [submodule "mkdocs/mkdocs-material"]
 	path = mkdocs/mkdocs-material
 	url = git://github.com/glumanda/mkdocs-material
+[submodule "ems/evcc"]
+	path = ems/evcc
+	url = https://github.com/evcc-io/evcc

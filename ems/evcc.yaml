@@ -1,0 +1,96 @@
+# open evcc at http://evcc.local:7070
+
+network:
+    schema: http
+    host: evcc
+    port: 7070
+
+log: debug
+levels:
+    cache: error
+    tasmota: trace
+
+# unique installation id
+# plant: 3e166bd10b81bdaf3489b746e549a166ffd3e92119aa28897723e85cf344a983
+
+interval: 30s # control cycle interval
+
+site:
+    title: evcc
+    meters:
+        grid: electricity_meter
+        pv: 
+            - sh10rt_master
+            - sh10rt_slave
+        battery: sh10rt_battery
+    residualPower: 100
+
+tariffs:
+  currency: EUR
+  grid:
+    type: fixed
+    price: 0.2361
+  feedin:
+    type: fixed
+    price: 0.077
+
+loadpoints:
+    - title: Garage
+      charger: demo_charger # charger
+      # vehicle: my_car # default vehicle
+      
+meters:
+
+    # - name: grid_meter
+      # type: template
+      # template: demo-meter
+      # usage: grid
+      # power: -1000 # 1 kW feed-in
+
+    - name: electricity_meter
+      type: template
+      template: tasmota-sml
+      usage: grid
+      host: 192.168.2.48
+      # user: admin
+      # password: 
+
+    - name: sh10rt_master
+      type: template
+      template: sungrow-hybrid 
+      usage: pv  
+      modbus: tcpip  
+      host: nodesathome1  
+      port: 5021
+      id: 1  
+      timeout: 5s
+
+    - name: sh10rt_battery
+      type: template
+      template: sungrow-hybrid
+      usage: battery
+      modbus: tcpip  
+      host: nodesathome1
+      port: 5021
+      id: 1
+      timeout: 5s
+
+    - name: sh10rt_slave
+      type: template
+      template: sungrow-hybrid 
+      usage: pv  
+      modbus: tcpip  
+      host: nodesathome1  
+      port: 5022
+      id: 2
+      timeout: 5s
+
+chargers:
+    - name: demo_charger
+      type: template
+      template: demo-charger
+      # status: C # charging
+      # power: 2000 # 2 kW charging power
+      enabled: true # optional    
+      maxcurrent: 16
+     

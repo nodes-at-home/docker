@@ -42,6 +42,7 @@ services:
       - "8123:8123"         # home assistant secure
       - "8086:8086"         # influxdb secure
       - "3493:3493"         # upsd
+      - "7070:7070"         # evcc
     networks:
       - proxy
       - metrics

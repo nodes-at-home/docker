@@ -55,6 +55,9 @@ entryPoints:
 
     registry_secure:
         address: ":5000"
+        transport:
+            respondingTimeouts:
+                readTimeout: 0      # default is 60 sec timeout for responding, this is to small for pushing large images like home assistant to the registry
 
     hass_secure:
         address: ":8123"
@@ -64,6 +67,9 @@ entryPoints:
 
     upsd:
         address: ":3493"
+
+    evcc_secure:
+        address: ":7070"
 
 metrics:
 

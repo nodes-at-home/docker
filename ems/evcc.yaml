@@ -29,7 +29,7 @@ tariffs:
   currency: EUR
   grid:
     type: fixed
-    price: 0.2361
+    price: 0.2504
   feedin:
     type: fixed
     price: 0.077

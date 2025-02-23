@@ -49,8 +49,8 @@ services:
     expose:
       - "8123"
     devices:
-      # - "/dev/serial/by-id/usb-BECKER-ANTRIEBE_GmbH_CDC_RS232_v125_Centronic-if00:/dev/beckercentronicusb"
       - "${BECKER_DEV-/dev/serial/by-id/usb-BECKER-ANTRIEBE_GmbH_CDC_RS232_v125_Centronic-if00}:/dev/beckercentronicusb"
+      # - "${ZIGBEE_DEV-/dev/serial/by-id/usb-Itead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_V2_406977e5783aef11a0bc261455516304-if00-port0}:/dev/zigbeeusb"
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "~/docker/home-assistant:/config"
@@ -97,21 +97,3 @@ services:
     networks:
       - proxy
       - backbone
-
-  modbus-proxy:
-    build:
-      context: ./modbus-proxy
-    image: ${DOCKER_REGISTRY}my_modbus-proxy
-    container_name: modbus-proxy
-    restart: "always"
-    environment:
-      - TZ=Europe/Berlin
-    labels:
-      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
-      - "traefik.enable=false"
-    ports:
-      # - "9000:9000"             # sh10rt master via Winet
-      - "5021:5021"             # sh10rt master
-      - "5022:5022"             # sh10rt slave
-    networks:
-      - proxy

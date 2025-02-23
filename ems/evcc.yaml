@@ -1,96 +1,98 @@
-# open evcc at http://evcc.local:7070
+###
+### 22.02.2025
+###
+
+### todos
+###   - tasmota Zähler auf mqtt umstellen, dann entfällt auch der manuelle bau des Docker Images
+
+sponsortoken: <token>
 
 network:
     schema: http
     host: evcc
     port: 7070
 
+# https://docs.evcc.io/docs/reference/configuration/log
 log: debug
 levels:
     cache: error
     tasmota: trace
 
-# unique installation id
-# plant: 3e166bd10b81bdaf3489b746e549a166ffd3e92119aa28897723e85cf344a983
+mqtt:
+  broker: mosquitto:1883
+  topic: evcc # root topic for publishing, set empty to disable publishing
 
 interval: 30s # control cycle interval
 
 site:
-    title: evcc
+    title: nodes@home
     meters:
         grid: electricity_meter
         pv: 
             - sh10rt_master
             - sh10rt_slave
         battery: sh10rt_battery
+    # Sollwert der Regelung, >0 Regelpunkt zur Einspeiseseite verschoben
     residualPower: 100
 
 tariffs:
-  currency: EUR
-  grid:
-    type: fixed
-    price: 0.2504
-  feedin:
-    type: fixed
-    price: 0.077
+    currency: EUR
+    grid:
+        type: fixed
+        price: 0.2504
+    feedin:
+        type: fixed
+        price: 0.077
 
 loadpoints:
-    - title: Garage
-      charger: demo_charger # charger
-      # vehicle: my_car # default vehicle
+  - title: Wallbox
+    charger: go-echarger
+    # vehicle: kia-ev6
+    # ab wann wird im PV-Modus geladen
+    enable:
+        threshold: 0    # = 0 Netzeinspeisung muss min. Ladeleistung erreicht haben
+        delay: 1m
+    disable:
+        threshold: 0    # = 0 Netzeinspeisung lieght unterhalb min. Ladeleistung erreicht haben
+        delay: 3m
       
 meters:
-
-    # - name: grid_meter
-      # type: template
-      # template: demo-meter
-      # usage: grid
-      # power: -1000 # 1 kW feed-in
-
     - name: electricity_meter
       type: template
       template: tasmota-sml
       usage: grid
       host: 192.168.2.48
-      # user: admin
-      # password: 
-
     - name: sh10rt_master
       type: template
       template: sungrow-hybrid 
       usage: pv  
       modbus: tcpip  
-      host: nodesathome1  
+      host: nodesathome1.fritz.box
       port: 5021
       id: 1  
       timeout: 5s
-
     - name: sh10rt_battery
       type: template
       template: sungrow-hybrid
       usage: battery
       modbus: tcpip  
-      host: nodesathome1
+      host: nodesathome1.fritz.box
       port: 5021
       id: 1
       timeout: 5s
-
     - name: sh10rt_slave
       type: template
       template: sungrow-hybrid 
       usage: pv  
       modbus: tcpip  
-      host: nodesathome1  
+      host: nodesathome1.fritz.box
       port: 5022
       id: 2
       timeout: 5s
 
 chargers:
-    - name: demo_charger
+    - name: go-echarger
       type: template
-      template: demo-charger
-      # status: C # charging
-      # power: 2000 # 2 kW charging power
-      enabled: true # optional    
-      maxcurrent: 16
+      template: go-e-v3
+      host: go-echarger.fritz.box
      

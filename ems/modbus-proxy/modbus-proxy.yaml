@@ -4,29 +4,13 @@
 
 devices:
 
-    # sh10rt master winet for test
-  # - modbus:
-        # url: 192.168.2.188:502
-        # timeout: 10
-        # connection_time: 1
-    # listen:
-        # bind: tcp://0.0.0.0:9000
-
-    # sh10rt master
+    # template entry
   - modbus:
-        url: 192.168.2.184:502
+        url: 127.0.0.1:502
         timeout: 10
         connection_time: 1
     listen:
-        bind: tcp://0.0.0.0:5021
-
-    # sh10rt slave
-  - modbus:
-        url: 192.168.2.186:502
-        timeout: 10
-        connection_time: 1
-    listen:
-        bind: tcp://0.0.0.0:5022
+        bind: tcp://0.0.0.0:5020
 
 logging:
     version: 1

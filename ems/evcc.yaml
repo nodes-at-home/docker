@@ -2,10 +2,13 @@
 ### 22.02.2025
 ###
 
-### todos
-###   - tasmota Zähler auf mqtt umstellen, dann entfällt auch der manuelle bau des Docker Images
+# https://docs.evcc.io/docs/devices/vehicles#kia-bluelink
+
 
 sponsortoken: <token>
+
+telemetry: true
+plant: <id>
 
 network:
     schema: http
@@ -13,14 +16,7 @@ network:
     port: 7070
 
 # https://docs.evcc.io/docs/reference/configuration/log
-log: debug
-levels:
-    cache: error
-    tasmota: trace
-
-mqtt:
-  broker: mosquitto:1883
-  topic: evcc # root topic for publishing, set empty to disable publishing
+log: warn
 
 interval: 30s # control cycle interval
 
@@ -53,15 +49,15 @@ loadpoints:
         threshold: 0    # = 0 Netzeinspeisung muss min. Ladeleistung erreicht haben
         delay: 1m
     disable:
-        threshold: 0    # = 0 Netzeinspeisung lieght unterhalb min. Ladeleistung erreicht haben
+        threshold: 0    # = 0 Netzeinspeisung liegt unterhalb min. Ladeleistung
         delay: 3m
-      
+
 meters:
     - name: electricity_meter
       type: template
       template: tasmota-sml
       usage: grid
-      host: 192.168.2.48
+      host: tasmota-08E112-0274.fritz.box
     - name: sh10rt_master
       type: template
       template: sungrow-hybrid 

@@ -20,6 +20,10 @@ log: warn
 
 interval: 30s # control cycle interval
 
+mqtt:
+    broker: mosquitto:1883
+    ###topic: evcc # root topic for publishing, set empty to disable publishing
+
 site:
     title: nodes@home
     meters:
@@ -54,10 +58,21 @@ loadpoints:
 
 meters:
     - name: electricity_meter
-      type: template
-      template: tasmota-sml
-      usage: grid
-      host: tasmota-08E112-0274.fritz.box
+      type: custom
+      power:
+          source: mqtt
+          topic: tele/tasmota_08E112/SENSOR
+          timeout: 10s
+          jq: .LK13BE.power
+      energy:
+          source: mqtt
+          topic: tele/tasmota_08E112/SENSOR
+          timeout: 10s
+          jq: .LK13BE.energy_total_in
+      # type: template
+      # template: tasmota-sml
+      # usage: grid
+      # host: tasmota-08E112-0274.fritz.box
     - name: sh10rt_master
       type: template
       template: sungrow-hybrid 

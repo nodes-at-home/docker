@@ -32,9 +32,7 @@ services:
       - proxy
 
   evcc:
-    build:
-      context: ./evcc
-    image: ${DOCKER_REGISTRY}my_evcc
+    image: ${DOCKER_REGISTRY}evcc/evcc:latest
     container_name: evcc
     restart: "unless-stopped"
     environment:

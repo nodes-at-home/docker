@@ -47,7 +47,7 @@ tariffs:
 loadpoints:
   - title: Wallbox
     charger: go-echarger
-    # vehicle: kia-ev6
+    vehicle: kia-ev6
     # ab wann wird im PV-Modus geladen
     enable:
         threshold: 0    # = 0 Netzeinspeisung muss min. Ladeleistung erreicht haben
@@ -106,4 +106,16 @@ chargers:
       type: template
       template: go-e-v3
       host: go-echarger.fritz.box
-     
+
+vehicles:
+  - name: kia-ev6
+    type: template
+    template: kia
+    user: <user>
+    password: <password>
+    ###vin: W... # Erforderlich, wenn mehrere Fahrzeuge des Herstellers vorhanden sind (optional)
+    title: Kia EV6
+    capacity: 84
+    language: de
+    icon: car
+    cache: 15m # Zeitintervall nach dem Daten erneut vom Fahrzeug abgefragt werden (optional)

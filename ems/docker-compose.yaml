@@ -40,6 +40,8 @@ services:
       - EVCC_SITE_TITLE= ${HOSTNAME}
       - EVCC_SPONSORTOKEN
       - EVCC_PLANT
+      - EVCC_VEHICLES_USER
+      - EVCC_VEHICLES_PASSWORD
     labels:
       - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
       - "traefik.enable=true"
@@ -53,5 +55,3 @@ services:
       - "~/docker/evcc/.evcc:/root/.evcc"
     networks:
       - proxy
-    
-    

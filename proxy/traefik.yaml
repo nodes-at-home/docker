@@ -59,7 +59,7 @@ entryPoints:
             respondingTimeouts:
                 readTimeout: 0      # default is 60 sec timeout for responding, this is to small for pushing large images like home assistant to the registry
 
-    hass_secure:
+    hass:
         address: ":8123"
 
     influxdb_secure:

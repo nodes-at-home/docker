@@ -78,9 +78,18 @@ http:
             tls:
                 options: intermediate
 
+        hass_unsecured:
+            entryPoints:
+              - 'hass'
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: hass-nodesathome@docker
+
         hass:
             entryPoints:
-              - 'hass_secure'
+              - 'hass'
             rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
             middlewares:
               - pokemonnet

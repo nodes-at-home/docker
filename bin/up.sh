@@ -15,7 +15,7 @@ STACK=$1
 
 echo "Bringing up $STACK"
 
-[ -n "$STACK" ] && [ -d ./"$TACK" ] && cd $STACK && $COMPOSE up -d && cd - && popd && exit 0
+[ -n "$STACK" ] && [ -d ./"$STACK" ] && cd $STACK && $COMPOSE up -d && cd - && popd && exit 0
 
 popd
 

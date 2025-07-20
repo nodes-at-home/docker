@@ -19,7 +19,7 @@ STACK=`grep "${APP}:$" ./*/docker-compose.yaml | cut -d/ -f2`
 
 echo "Executing $APP in $STACK"
 
-[ -n "$APP" ] && [ -n "$STACK" ] && [ -d ./"$TACK" ] && cd $STACK && $COMPOSE exec $APP $CONTAINER_SHELL && cd -
+[ -n "$APP" ] && [ -n "$STACK" ] && [ -d ./"$STACK" ] && cd $STACK && $COMPOSE exec $APP $CONTAINER_SHELL && cd -
 
 popd
 

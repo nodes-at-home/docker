@@ -2,7 +2,8 @@
 # 16.04 == xenial
 #FROM ubuntu:16.04
 FROM ubuntu:22.04
-LABEL maintainer="marcelstoer"
+# LABEL maintainer="marcelstoer"
+LABEL maintainer="junand"
 
 # If you want to tinker with this Dockerfile on your machine do as follows:
 # - git clone https://github.com/marcelstoer/docker-nodemcu-build

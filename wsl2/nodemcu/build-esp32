@@ -13,8 +13,7 @@ if [ ! -f sdkconfig ]; then
 fi
 
 version_file=components/platform/include/user_version.h
-###lua_header_file=components/lua/lua.h
-lua_header_file=components/lua/lua-5.1/lua.h
+lua_header_file=components/lua/lua.h
 
 export BUILD_DATE COMMIT_ID BRANCH SSL MODULES SDK_VERSION
 BUILD_DATE="$(date "+%Y-%m-%d %H:%M")"
@@ -44,6 +43,9 @@ if git diff -b --quiet "$version_file"; then
 else
   CAN_MODIFY_VERSION=false
 fi
+
+# junand 21.07.2025: own name conventions
+BRANCH=standard_lfs256_autosize
 
 # use the Git branch and the current time stamp to define image name if IMAGE_NAME not set
 if [ -z "$IMAGE_NAME" ]; then
@@ -83,7 +85,7 @@ make $BUILD_MAKE_TARGETS
 # 0x8000 partitions.bin
 # 0x10000 NodeMCU.bin
 # current command is a simplification of the one proposed at https://github.com/marcelstoer/docker-nodemcu-build/issues/55#issuecomment-440830227
-srec_cat -output nodemcu_"${IMAGE_NAME}".bin -binary build/bootloader/bootloader.bin -binary -offset 0x1000 -fill 0xff 0x0000 0x8000 build/partitions.bin -binary -offset 0x8000 -fill 0xff 0x8000 0x10000 build/NodeMCU.bin -binary -offset 0x10000
+srec_cat -output nodemcu_"${IMAGE_NAME}".bin -binary build/bootloader/bootloader.bin -binary -offset 0x1000 -fill 0xff 0x0000 0x8000 build/partitions_lfs256.bin -binary -offset 0x8000 -fill 0xff 0x8000 0x10000 build/NodeMCU.bin -binary -offset 0x10000
 
 
 # revert the changes made to the version params

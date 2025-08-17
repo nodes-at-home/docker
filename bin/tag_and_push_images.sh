@@ -13,6 +13,7 @@ fi
 REGISTRY=nodesathome1:5000
 
 # options
+# -d dry run mode, do not tag and push images
 # -r <registry> (default nodesathome1:5000)
 # -i <image list> (default all images)
 # -h show help
@@ -20,7 +21,7 @@ REGISTRY=nodesathome1:5000
 # -q quiet output
 
 # parse options
-while getopts "r:i:hqv" opt; do
+while getopts "r:i:dhqv" opt; do
   case ${opt} in
     r )
       REGISTRY=$OPTARG
@@ -28,10 +29,15 @@ while getopts "r:i:hqv" opt; do
     i )
       IMAGES=$OPTARG
       ;;
+    d )
+      echo "Dry run mode enabled, no images will be tagged or pushed."
+      DRY_RUN=true
+      ;;
     h )
       echo "Usage: $0 [-r <registry>] [-i <image list>]"
       echo "  -r <registry>   Specify the registry to push images to (default: nodesathome1:5000)"
       echo "  -i <image list> Specify the list of images to tag and push (default: all images)"
+      echo "  -d              Dry run mode, do not tag and push images"
       echo "  -h              Show this help message"
       echo "  -q              Quiet mode, suppress output"
       echo "  -v              Verbose mode, show detailed output"
@@ -49,16 +55,18 @@ while getopts "r:i:hqv" opt; do
       ;;
   esac
 done
-###shift $((OPTIND -1))
+shift $((OPTIND -1))
 
-echo "Using registry: ${REGISTRY}"
-echo "Using images: ${IMAGES}"
+echo "target registry: ${REGISTRY}"
 
 # retrieve all images, no matter running or not
 IMAGES=$(docker image list --format json | jq -r .Repository | grep -v my_ | grep -v nodesathome1:5000 | sort | uniq)
-
 # use the first parameter as image list
 [ -n "$1" ] && IMAGES="$1"
+echo "images to treat:"
+echo "${IMAGES}"
+
+echo "--------------------------------------------------"
 
 # check and eventually tag and push all images
  for image in ${IMAGES};
@@ -77,8 +85,13 @@ IMAGES=$(docker image list --format json | jq -r .Repository | grep -v my_ | gre
     # echo ""
 
     # only tag and push, when image were already tagged with private registry
-    # images which are never tagged with private registry will not be pushed and must be initially tagged an dpushed manually
+    # images which are never tagged with private registry will not be pushed and must be initially tagged an pushed manually
     if [ -n "${ID_REG}" ] && [ "${ID_HUB}" != "${ID_REG}" ] && [ "${TAG_HUB}" == "${TAG_REG}" ]; then
+
+        if [ -n "${DRY_RUN}" ]; then
+            echo "Dry run: would tag and push ${image}:${TAG_HUB} to ${REGISTRY}/${image}:${TAG_HUB}"
+            continue
+        fi
 
         echo "Tagging ${image}:${TAG_HUB} with ${REGISTRY}/${image}:${TAG_HUB}"
         docker tag ${image}:${TAG_HUB} ${REGISTRY}/${image}:${TAG_HUB}
@@ -86,9 +99,6 @@ IMAGES=$(docker image list --format json | jq -r .Repository | grep -v my_ | gre
         echo "Pushing ${image} to ${REGISTRY}/${image}:${TAG_HUB}"
         docker push ${REGISTRY}/${image}:${TAG_HUB}
         # echo "Pushed ${image} to ${REGISTRY}/${image}"
-
-        echo "--------------------------------------------------"
-        echo ""
 
     else
 
@@ -104,5 +114,6 @@ IMAGES=$(docker image list --format json | jq -r .Repository | grep -v my_ | gre
 
     fi
 
+    echo "--------------------------------------------------"
 
 done

@@ -1,17 +1,7 @@
 # see https://hub.docker.com/_/ubuntu/ for versions, should be the same as on Travis for NodeMCU CI
 # 16.04 == xenial
-#FROM ubuntu:16.04
 FROM ubuntu:22.04
-# LABEL maintainer="marcelstoer"
 LABEL maintainer="junand"
-
-# If you want to tinker with this Dockerfile on your machine do as follows:
-# - git clone https://github.com/marcelstoer/docker-nodemcu-build
-# - cd docker-nodemcu-build
-# - vim Dockerfile
-# - docker build -t docker-nodemcu-build .
-# - cd <nodemcu-firmware>
-# - docker run --rm -ti -v `pwd`:/opt/nodemcu-firmware docker-nodemcu-build build
 
 # Lint the final file with https://hadolint.github.io/hadolint/
 
@@ -55,5 +45,4 @@ COPY idle.sh /opt/
 # Release some space...
 ###RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-#CMD ["/opt/cmd.sh"]
 CMD ["/opt/idle.sh"]

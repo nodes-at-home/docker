@@ -13,7 +13,7 @@ if [ ! -f sdkconfig ]; then
 fi
 
 version_file=components/platform/include/user_version.h
-lua_header_file=components/lua/lua.h
+lua_header_file=components/lua/lua-5.1/lua.h
 
 export BUILD_DATE COMMIT_ID BRANCH SSL MODULES SDK_VERSION
 BUILD_DATE="$(date "+%Y-%m-%d %H:%M")"
@@ -44,22 +44,19 @@ else
   CAN_MODIFY_VERSION=false
 fi
 
-# junand 21.07.2025: own name conventions
-BRANCH=standard_lfs256_autosize
-
 # use the Git branch and the current time stamp to define image name if IMAGE_NAME not set
 if [ -z "$IMAGE_NAME" ]; then
-  IMAGE_NAME=${BRANCH}_"$(date "+%Y%m%d-%H%M")"
+  IMAGE_NAME=nodemcu_esp32_standard_lfs256_autosize_"$(date "+%Y%m%d-%H%M")"
 else
   true
 fi
 
 # modify user_version.h to provide more info in NodeMCU welcome message
 if [ "$CAN_MODIFY_VERSION" = true ]; then
-  MODULES=$(awk '/^CONFIG_LUA_MODULE_[^=]*=y/{modules=modules sep tolower(substr($1,19));sep=","}END{if(length(modules)==0)modules="-";gsub("=y","",modules);print modules}' sdkconfig)
+  MODULES=$(awk '/^CONFIG_NODEMCU_CMODULE_[^=]*=y/{modules=modules sep tolower(substr($1,24));sep=","}END{if(length(modules)==0)modules="-";gsub("=y","",modules);print modules}' sdkconfig)
   # remove windows line ends first as they interfere with line end matching below
   sed -i 's/\r//g' "$version_file"
-  sed -i '/#define NODE_VERSION[[:space:]]/ s/$/ " built with Docker provided by frightanic.com\\n\\tbranch: '"$BRANCH"'\\n\\tcommit: '"$COMMIT_ID"'\\n\\tSSL: '"$SSL"'\\n\\tmodules: '"$MODULES"'\\n"/g' "$version_file"
+  sed -i '/#define NODE_VERSION[[:space:]]/ s/$/ " built with Docker\\n\\tbranch: '"$BRANCH"'\\n\\tcommit: '"$COMMIT_ID"'\\n\\tSSL: '"$SSL"'\\n\\tmodules: '"$MODULES"'\\n"/g' "$version_file"
   sed -i 's/"unspecified"/"created on '"$BUILD_DATE"'\\n"/g' "$version_file"
 fi
 # append " on ESP-IDF xxx" to the Lua version
@@ -69,15 +66,15 @@ sed -i '/#define LUA_RELEASE[[:space:]]/ s/$/ " on ESP-IDF '"$SDK_VERSION"'"/g' 
 
 
 # Determine build targets
-if [ -z "$BUILD_MAKE_TARGETS" ]; then BUILD_MAKE_TARGETS='all'; fi
+if [ -z "$BUILD_MAKE_TARGETS" ]; then BUILD_MAKE_TARGETS='clean all'; fi
 # Put other config mechanisms here to overwrite them (e.g. with CLI args)
 
 # Install setuptools explicitly before installing the ESP-IDF dependencies.
 # See https://github.com/marcelstoer/docker-nodemcu-build/issues/86
-/usr/bin/python -m pip install setuptools
+###/usr/bin/python -m pip install setuptools
 
 # install all required ESP-IDF dependencies
-/usr/bin/python -m pip install --user -r /opt/nodemcu-firmware/sdk/esp32-esp-idf/requirements.txt
+###/usr/bin/python -m pip install --user -r /opt/nodemcu-firmware/requirements.txt
 # run the build
 make $BUILD_MAKE_TARGETS
 # package the 3 binaries into a single .bin for 0x0000
@@ -85,7 +82,7 @@ make $BUILD_MAKE_TARGETS
 # 0x8000 partitions.bin
 # 0x10000 NodeMCU.bin
 # current command is a simplification of the one proposed at https://github.com/marcelstoer/docker-nodemcu-build/issues/55#issuecomment-440830227
-srec_cat -output nodemcu_"${IMAGE_NAME}".bin -binary build/bootloader/bootloader.bin -binary -offset 0x1000 -fill 0xff 0x0000 0x8000 build/partitions_lfs256.bin -binary -offset 0x8000 -fill 0xff 0x8000 0x10000 build/NodeMCU.bin -binary -offset 0x10000
+srec_cat -output "${IMAGE_NAME}".bin -binary build/bootloader/bootloader.bin -binary -offset 0x1000 -fill 0xff 0x0000 0x8000 build/partition_table/partition-table.bin -binary -offset 0x8000 -fill 0xff 0x8000 0x10000 build/nodemcu.bin -binary -offset 0x10000
 
 
 # revert the changes made to the version params

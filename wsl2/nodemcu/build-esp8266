@@ -8,7 +8,7 @@ set -e
 
 cd /opt/nodemcu-firmware
 
-export USER_PROLOG="built with Docker provided by frightanic.com"
+export USER_PROLOG="built with Docker"
 
 version_file=app/include/user_version.h
 
@@ -39,7 +39,6 @@ else
   BUILD_TYPE=float
 fi
 
-
 # check whether the user made changes to the version file, if so then assume she wants to use a custom version rather
 # than the one that would be set here -> we can't modify it
 if git diff -b --quiet "$version_file"; then
@@ -50,7 +49,8 @@ fi
 
 # use the Git branch and the current time stamp to define image name if IMAGE_NAME not set
 if [ -z "$IMAGE_NAME" ]; then
-  IMAGE_NAME=${BRANCH}_"$(date "+%Y%m%d-%H%M")"
+  # IMAGE_NAME=${BRANCH}_"$(date "+%Y%m%d-%H%M")"
+  IMAGE_NAME=nodemcu_esp8266_standard_lfs256_autosize_"$(date "+%Y%m%d-%H%M")"
 else
   true
 fi
@@ -87,7 +87,7 @@ if [ "$CAN_MODIFY_VERSION" = true ] && [ ! -f tools/update_buildinfo.sh ]; then
   MODULES=$(awk '/^[ \t]*#define LUA_USE_MODULES/{modules=modules sep tolower(substr($2,17));sep=","}END{if(length(modules)==0)modules="-";print modules}' app/include/user_modules.h | tr -d '\r')
   # remove windows line ends first as they interfere with line end matching below
   sed -i 's/\r//g' "$version_file"
-  sed -i '/#define NODE_VERSION[[:space:]]/ s/$/ " built with Docker provided by frightanic.com\\n\\tbranch: '"$BRANCH"'\\n\\tcommit: '"$COMMIT_ID"'\\n\\tSSL: '"$SSL"'\\n\\tBuild type: '"$BUILD_TYPE"'\\n\\tLFS: '"$LFS"'\\n\\tmodules: '"$MODULES"'\\n"/g' "$version_file"
+  sed -i '/#define NODE_VERSION[[:space:]]/ s/$/ " built with Docker\\n\\tbranch: '"$BRANCH"'\\n\\tcommit: '"$COMMIT_ID"'\\n\\tSSL: '"$SSL"'\\n\\tBuild type: '"$BUILD_TYPE"'\\n\\tLFS: '"$LFS"'\\n\\tmodules: '"$MODULES"'\\n"/g' "$version_file"
   sed -i 's/"unspecified"/"created on '"$BUILD_DATE"'\\n"/g' "$version_file"
 fi
 
@@ -100,9 +100,9 @@ if [ -z "$BUILD_MAKE_TARGETS" ]; then BUILD_MAKE_TARGETS='clean all'; fi
 # build
 make WRAPCC="$(which ccache)" $BUILD_MAKE_TARGETS
 cd bin
-srec_cat -output nodemcu_${BUILD_TYPE}_"${IMAGE_NAME}".bin -binary 0x00000.bin -binary -fill 0xff 0x00000 0x10000 0x10000.bin -binary -offset 0x10000
+srec_cat -output "${IMAGE_NAME}".bin -binary 0x00000.bin -binary -fill 0xff 0x00000 0x10000 0x10000.bin -binary -offset 0x10000
 # copy and rename the mapfile to bin/
-cp ../app/mapfile nodemcu_${BUILD_TYPE}_"${IMAGE_NAME}".map
+cp ../app/mapfile "${IMAGE_NAME}".map
 cd ../
 
 

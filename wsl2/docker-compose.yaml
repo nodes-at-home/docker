@@ -38,7 +38,6 @@ services:
           labels:
             com.centurylinklabs.watchtower.enable: "false"
         image: nodemcu-builder
-        # image: marcelstoer/nodemcu-build
         container_name: nodemcu-esp32
         restart: "no"
         environment:
@@ -51,15 +50,18 @@ services:
           - ~/GIT/nodemcu-firmware-esp32:/opt/nodemcu-firmware
           - ~/GIT/luaNodes/src_lfs:/opt/lua
           - ~/GIT/luaNodes/bin:/opt/bin
-        command: /opt/nodemcu-firmware/idle.sh
+          # remember all the installed stuff
+          - ~/docker/nodemcu-esp32/.espressif:/root/.espressif
+          - ~/docker/nodemcu-esp32/.cache:/root/.cache
+          - ~/docker/nodemcu-esp32/.bash_history:/root/.bash_history
+        command: /opt/idle.sh
 
     nodemcu-esp8266:
-        # build:
-        #   context: ./nodemcu
-        #   labels:
-        #     com.centurylinklabs.watchtower.enable: "false"
-        # image: nodemcu-builder
-        image: marcelstoer/nodemcu-build
+        build:
+          context: ./nodemcu
+          labels:
+            com.centurylinklabs.watchtower.enable: "false"
+        image: nodemcu-builder
         container_name: nodemcu-esp8266
         restart: "no"
         environment:
@@ -72,7 +74,7 @@ services:
           - ~/GIT/nodemcu-firmware-esp8266:/opt/nodemcu-firmware
           - ~/GIT/luaNodes/src_lfs:/opt/lua
           - ~/GIT/luaNodes/bin:/opt/bin
-        command: /opt/nodemcu-firmware/idle.sh
+        command: /opt/idle.sh
 
     qtcreator:
         build:

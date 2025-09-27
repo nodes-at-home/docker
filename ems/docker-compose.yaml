@@ -43,7 +43,6 @@ services:
       - EVCC_VEHICLES_USER
       - EVCC_VEHICLES_PASSWORD
     labels:
-      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
       - "traefik.enable=true"
       - "traefik.http.routers.dontuse.entrypoints=dontuse"
       - "traefik.docker.network=proxy"

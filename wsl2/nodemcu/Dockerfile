@@ -23,6 +23,7 @@ RUN apt-get install -y --no-install-recommends libusb-1.0 cmake
 RUN apt-get install -y --no-install-recommends python3-venv
 
 RUN pip install --upgrade pip
+RUN pip install esptool
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 

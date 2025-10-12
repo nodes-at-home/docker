@@ -166,6 +166,17 @@ http:
             tls:
                 options: intermediate
 
+        open-webui:
+            entryPoints:
+              - 'openwebui_secure'
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+            middlewares:
+              - pokemonnet
+            service: open-webui-ai@docker
+            # service: openwebui
+            tls:
+                options: intermediate
+
     middlewares:
         octoprint_headers:
             headers:
@@ -177,7 +188,6 @@ http:
                 prefixes:
                   - '/octoprint'
                   - '/registry'
-                forceSlash: false
         web-redirect:
             redirectScheme:
                 scheme: https
@@ -191,7 +201,7 @@ http:
                   - "test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"
                   - "test2:$apr1$d9hr9HBB$4HxwgUir3HP4EsggP/QNo0"
         pokemonnet:
-            ipWhiteList:
+            ipAllowList:
                 sourceRange:
                   - 0.0.0.0/0         # no restriction (necessary for docker for windows under wsl2)
                   - 192.168.2.0/24

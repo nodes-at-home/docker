@@ -1,0 +1,82 @@
+###
+### junand 10.10.2025
+###
+
+# ai/docker-compose.yaml
+
+networks:
+
+  proxy:
+    external: true
+
+  backbone:
+    external: true
+
+services:
+
+    n8n:
+        image: n8nio/n8n:latest
+        container_name: n8n
+        restart: no
+        environment:
+          - TZ=Europe/Berlin
+          - N8N_HOST=andreas-book4
+          - N8N_PORT=5678
+          - N8N_PROTOCOL=http
+          - N8N_SECURE_COOKIE=false
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        depends_on:
+          - ollama
+        ports:
+          - "5678:5678"
+        volumes:
+          - ~/docker/n8n:/home/node/.n8n
+
+    ollama:
+        image: ollama/ollama
+        container_name: ollama
+        restart: no
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=false"
+        # ports:
+        #   - "11434:11434"  # Standard-Port für die API
+        volumes:
+          - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
+        deploy:
+          resources:
+            reservations:
+              devices:
+              - driver: nvidia
+                capabilities: ["gpu"]
+                count: all  # Adjust count for the number of GPUs you want to use        
+        networks:
+          - backbone
+
+    open-webui:
+        image: ghcr.io/open-webui/open-webui:main
+        container_name: open-webui
+        restart: no
+        environment:
+          - TZ=Europe/Berlin
+          - OLLAMA_BASE_URL=http://ollama:11434
+          - WEBUI_AUTH=False
+          - PORT=3000
+        expose:
+          - "3000"
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          # - "traefik.http.services.open-webui-ai.loadbalancer.server.port=8080"
+          - "traefik.docker.network=proxy"
+        depends_on:
+          - ollama
+        volumes:
+          - ~/docker/openwebui:/app/backend/data
+        networks:
+          - proxy
+          - backbone

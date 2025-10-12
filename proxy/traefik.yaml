@@ -71,6 +71,9 @@ entryPoints:
     evcc_secure:
         address: ":7070"
 
+    openwebui_secure:
+        address: ":3000"
+
 metrics:
 
     prometheus:

@@ -41,6 +41,7 @@ services:
       - "8086:8086"         # influxdb secure
       - "3493:3493"         # upsd
       - "7070:7070"         # evcc
+      - "3000:3000"         # open-webui
     networks:
       - proxy
       - metrics

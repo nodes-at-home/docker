@@ -173,7 +173,16 @@ http:
             middlewares:
               - pokemonnet
             service: open-webui-ai@docker
-            # service: openwebui
+            tls:
+                options: intermediate
+
+        n8n:
+            entryPoints:
+              - 'n8n_secure'
+            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+            middlewares:
+              - pokemonnet
+            service: n8n-ai@docker
             tls:
                 options: intermediate
 

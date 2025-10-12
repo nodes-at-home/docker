@@ -42,6 +42,7 @@ services:
       - "3493:3493"         # upsd
       - "7070:7070"         # evcc
       - "3000:3000"         # open-webui
+      - "5678:5678"         # n8n
     networks:
       - proxy
       - metrics

@@ -74,6 +74,9 @@ entryPoints:
     openwebui_secure:
         address: ":3000"
 
+    n8n_secure:
+        address: ":5678"
+
 metrics:
 
     prometheus:

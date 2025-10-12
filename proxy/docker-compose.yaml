@@ -21,8 +21,6 @@ services:
     environment:
       - TZ=Europe/Berlin
       - PARENT_HOSTNAME=${HOSTNAME}
-    depends_on:
-      - whoami
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "~/docker/docker/proxy/traefik.yaml:/etc/traefik/traefik.yml"
@@ -51,6 +49,8 @@ services:
     # a container that exposes an API to show its IP address
     image: ${DOCKER_REGISTRY}containous/whoami
     container_name: whoami
+    depends_on:
+      - traefik
     restart: "unless-stopped"
     environment:
       - TZ=Europe/Berlin
@@ -60,3 +60,20 @@ services:
       - "traefik.docker.network=proxy"
     networks:
       - proxy
+
+  # dnsmasq:
+  #     image: dockurr/dnsmasq
+  #     container_name: dnsmasq
+  #     restart: no
+  #     environment:
+  #       - TZ=Europe/Berlin
+  #     labels:
+  #       - "traefik.enable=false"
+  #     ports:
+  #       - "53:53/udp"
+  #       - "53:53/tcp"
+  #     volumes:
+  #       - ~/docker/docker/proxy/dnsmasq.conf:/etc/dnsmasq.conf
+  #       - ~/docker/dnsmasq:/etc/dnsmasq.d
+  #     cap_add:
+  #       - NET_ADMIN       # notwendig für DHCP und Netzwerkzugriffe

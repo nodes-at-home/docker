@@ -40,6 +40,7 @@ services:
       - TZ=Europe/Berlin
       - PARENT_HOSTNAME=${HOSTNAME}
       - HA_TITLE=Mein Zuhause @${HOSTNAME}
+      - HA_INTERNAL_URL=http://${HOSTNAME}:8123
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dontuse.entrypoints=dontuse"

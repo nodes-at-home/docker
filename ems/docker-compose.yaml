@@ -6,51 +6,51 @@
 
 networks:
 
-  proxy:
-    external: true
+    proxy:
+        external: true
 
 services:
 
-  modbus-proxy:
-    build:
-      context: ./modbus-proxy
-    image: ${DOCKER_REGISTRY}my_modbus-proxy
-    container_name: modbus-proxy
-    restart: "always"
-    environment:
-      - TZ=Europe/Berlin
-    labels:
-      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
-      - "traefik.enable=false"
-    ports:
-      - "5021:5021"             # sh10rt master
-      - "5022:5022"             # sh10rt slave
-      - "5023:5023"             # go-echarger
-    volumes:
-      - "~/docker/docker/ems/modbus-proxy.yaml:/app/modbus-proxy.yaml"
-    networks:
-      - proxy
+    modbus-proxy:
+        build:
+          context: ./modbus-proxy
+        image: ${DOCKER_REGISTRY}my_modbus-proxy
+        container_name: modbus-proxy
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
+          - "traefik.enable=false"
+        ports:
+          - "5021:5021"             # sh10rt master
+          - "5022:5022"             # sh10rt slave
+          - "5023:5023"             # go-echarger
+        volumes:
+          - "~/docker/docker/ems/modbus-proxy.yaml:/app/modbus-proxy.yaml"
+        networks:
+          - proxy
 
-  evcc:
-    image: ${DOCKER_REGISTRY}evcc/evcc:latest
-    container_name: evcc
-    restart: "unless-stopped"
-    environment:
-      - TZ=Europe/Berlin
-      - EVCC_SITE_TITLE= ${HOSTNAME}
-      - EVCC_SPONSORTOKEN
-      - EVCC_PLANT
-      - EVCC_VEHICLES_USER
-      - EVCC_VEHICLES_PASSWORD
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=proxy"
-      - "traefik.http.services.evcc-ems.loadbalancer.server.port=7070"
-    expose:
-      - "7070"
-    volumes:
-      - "~/docker/docker/ems/evcc.yaml:/etc/evcc.yaml"
-      - "~/docker/evcc/.evcc:/root/.evcc"
-    networks:
-      - proxy
+    evcc:
+        image: ${DOCKER_REGISTRY}evcc/evcc:latest
+        container_name: evcc
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+          - EVCC_SITE_TITLE= ${HOSTNAME}
+          - EVCC_SPONSORTOKEN
+          - EVCC_PLANT
+          - EVCC_VEHICLES_USER
+          - EVCC_VEHICLES_PASSWORD
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+          - "traefik.http.services.evcc-ems.loadbalancer.server.port=7070"
+        expose:
+          - "7070"
+        volumes:
+          - "~/docker/docker/ems/evcc.yaml:/etc/evcc.yaml"
+          - "~/docker/evcc/.evcc:/root/.evcc"
+        networks:
+          - proxy

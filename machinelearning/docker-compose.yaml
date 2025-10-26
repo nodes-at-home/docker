@@ -11,7 +11,7 @@ services:
         image: tensorflow/tensorflow:latest-gpu-py3-jupyter
         # image: tensorflow/tensorflow:latest-jupyter
         container_name: tensorflow-jupyter
-        restart: "no"
+        restart: no
         environment:
           - TZ=Europe/Berlin
           - PARENT_HOSTNAME=${HOSTNAME}

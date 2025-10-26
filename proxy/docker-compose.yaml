@@ -14,54 +14,55 @@ networks:
 
 services:
 
-  traefik:
-    image: ${DOCKER_REGISTRY}traefik
-    container_name: traefik
-    restart: "always"
-    environment:
-      - TZ=Europe/Berlin
-      - PARENT_HOSTNAME=${HOSTNAME}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - "~/docker/docker/proxy/traefik.yaml:/etc/traefik/traefik.yml"
-      - "~/docker/docker/proxy/dynamic:/etc/traefik/dynamic"
-      - "~/docker/traefik/ssl:/etc/ssl/nodesathome"
-    ports:
-      - "80:80"             # http
-      - "443:443"           # htpps
-      - "1883:1883"         # mqtt
-      - "8883:8883"         # mqtts
-      - "10001:10001"       # luatrace (deprecated)
-      - "10002:10002"       # luatrace secure
-      - "514:514"           # syslog
-      - "514:514/udp"       # syslog
-      - "5000:5000"         # private docker registry secure
-      # - "6514:6514"         # syslog secure
-      - "8123:8123"         # home assistant secure
-      - "8086:8086"         # influxdb secure
-      - "3493:3493"         # upsd
-      - "7070:7070"         # evcc
-      - "3000:3000"         # open-webui
-      - "5678:5678"         # n8n
-    networks:
-      - proxy
-      - metrics
+    traefik:
+        image: ${DOCKER_REGISTRY}traefik
+        container_name: traefik
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+          - PARENT_HOSTNAME=${HOSTNAME}
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - "~/docker/docker/proxy/traefik.yaml:/etc/traefik/traefik.yml"
+          - "~/docker/docker/proxy/dynamic:/etc/traefik/dynamic"
+          - "~/docker/traefik/ssl:/etc/ssl/nodesathome"
+        ports:
+          - "80:80"             # http
+          - "443:443"           # htpps
+          - "1883:1883"         # mqtt
+          - "8883:8883"         # mqtts
+          - "10001:10001"       # luatrace (deprecated)
+          - "10002:10002"       # luatrace secure
+          - "514:514"           # syslog
+          - "514:514/udp"       # syslog
+          - "5000:5000"         # private docker registry secure
+          # - "6514:6514"         # syslog secure
+          - "8123:8123"         # home assistant secure
+          - "8086:8086"         # influxdb secure
+          - "3493:3493"         # upsd
+          - "7070:7070"         # evcc
+          - "3000:3000"         # open-webui
+          - "5678:5678"         # n8n
+        networks:
+          - proxy
+          - metrics
 
-  whoami:
-    # a container that exposes an API to show its IP address
-    image: ${DOCKER_REGISTRY}containous/whoami
-    container_name: whoami
-    depends_on:
-      - traefik
-    restart: "unless-stopped"
-    environment:
-      - TZ=Europe/Berlin
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=proxy"
-    networks:
-      - proxy
+    whoami:
+        # a container that exposes an API to show its IP address
+        image: ${DOCKER_REGISTRY}containous/whoami
+        container_name: whoami
+        restart: ${DOCKER_RESTART_POLICY}
+        depends_on:
+          - traefik
+        restart: "unless-stopped"
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        networks:
+          - proxy
 
   # dnsmasq:
   #     image: dockurr/dnsmasq

@@ -17,7 +17,7 @@ services:
     watchtower:
         image: ${DOCKER_REGISTRY}containrrr/watchtower
         container_name: watchtower
-        restart: "no"
+        restart: ${DOCKER_RESTART_POLICY}
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - "~/.docker/config.json:/config.json"
@@ -46,7 +46,7 @@ services:
     registry:
         image: ${DOCKER_REGISTRY}registry:2
         container_name: registry
-        restart: "no"
+        restart: ${DOCKER_RESTART_POLICY}
         environment:
             TZ: Europe/Berlin
             # REGISTRY_LOG_LEVEL: debug
@@ -70,6 +70,7 @@ services:
     registryui:
         image: ${DOCKER_REGISTRY}joxit/docker-registry-ui:latest
         container_name: registryui
+        restart: ${DOCKER_RESTART_POLICY}
         environment:
           - TZ=Europe/Berlin
           - DELETE_IMAGES=true
@@ -94,6 +95,7 @@ services:
     upsd:
         image: ${DOCKER_REGISTRY}botsudo/nut-upsd:latest
         container_name: upsd
+        restart: ${DOCKER_RESTART_POLICY}
         networks:
           - proxy
         labels:
@@ -111,6 +113,7 @@ services:
     vscode:
         image: ${DOCKER_REGISTRY}linuxserver/code-server:latest
         container_name: vscode
+        restart: ${DOCKER_RESTART_POLICY}
         networks:
           - proxy
         labels:

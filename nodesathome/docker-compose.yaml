@@ -6,95 +6,95 @@
 
 networks:
 
-  proxy:
-    external: true
+    proxy:
+        external: true
 
-  backbone:
-    external: true
+    backbone:
+        external: true
 
 services:
 
-  mosquitto:
-    image: ${DOCKER_REGISTRY}eclipse-mosquitto:latest
-    container_name: mosquitto
-    restart: "always"
-    environment:
-      - TZ=Europe/Berlin
-    labels:
-      - "traefik.enable=true"
-      - "traefik.tcp.routers.mqtt.tls=false"
-      - "traefik.docker.network=proxy"
-    volumes:
-      - "~/docker/docker/nodesathome/mosquitto.conf:/mosquitto/config/mosquitto.conf"
-      - "~/docker/mosquitto/conf.d:/mosquitto/config/conf.d"
-      - "~/docker/mosquitto/data:/mosquitto/data"
-      - "~/docker/mosquitto/log:/mosquitto/log"
-    networks:
-      - proxy
+    mosquitto:
+        image: ${DOCKER_REGISTRY}eclipse-mosquitto:latest
+        container_name: mosquitto
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=true"
+          - "traefik.tcp.routers.mqtt.tls=false"
+          - "traefik.docker.network=proxy"
+        volumes:
+          - "~/docker/docker/nodesathome/mosquitto.conf:/mosquitto/config/mosquitto.conf"
+          - "~/docker/mosquitto/conf.d:/mosquitto/config/conf.d"
+          - "~/docker/mosquitto/data:/mosquitto/data"
+          - "~/docker/mosquitto/log:/mosquitto/log"
+        networks:
+          - proxy
 
-  hass:
-    image: ${DOCKER_REGISTRY}homeassistant/home-assistant:stable
-    container_name: hass
-    restart: "unless-stopped"
-    environment:
-      - TZ=Europe/Berlin
-      - PARENT_HOSTNAME=${HOSTNAME}
-      - HA_TITLE=Mein Zuhause @${HOSTNAME}
-      - HA_INTERNAL_URL=http://${HOSTNAME}:8123
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=proxy"
-    depends_on:
-      - mosquitto
-    expose:
-      - "8123"
-    devices:
-      - "${BECKER_DEV-/dev/serial/by-id/usb-BECKER-ANTRIEBE_GmbH_CDC_RS232_v125_Centronic-if00}:/dev/beckercentronicusb"
-      # - "${ZIGBEE_DEV-/dev/serial/by-id/usb-Itead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_V2_406977e5783aef11a0bc261455516304-if00-port0}:/dev/zigbeeusb"
-    volumes:
-      - "/etc/localtime:/etc/localtime:ro"
-      - "~/docker/home-assistant:/config"
-      - "/var/tmp/shutdown_signal:/var/tmp/shutdown_signal"
-    networks:
-      - proxy
-      - backbone
+    hass:
+        image: ${DOCKER_REGISTRY}homeassistant/home-assistant:stable
+        container_name: hass
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+          - PARENT_HOSTNAME=${HOSTNAME}
+          - HA_TITLE=Mein Zuhause @${HOSTNAME}
+          - HA_INTERNAL_URL=http://${HOSTNAME}:8123
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        depends_on:
+          - mosquitto
+        expose:
+          - "8123"
+        devices:
+          - "${BECKER_DEV-/dev/serial/by-id/usb-BECKER-ANTRIEBE_GmbH_CDC_RS232_v125_Centronic-if00}:/dev/beckercentronicusb"
+          # - "${ZIGBEE_DEV-/dev/serial/by-id/usb-Itead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_V2_406977e5783aef11a0bc261455516304-if00-port0}:/dev/zigbeeusb"
+        volumes:
+          - "/etc/localtime:/etc/localtime:ro"
+          - "~/docker/home-assistant:/config"
+          - "/var/tmp/shutdown_signal:/var/tmp/shutdown_signal"
+        networks:
+          - proxy
+          - backbone
 
-  nginx:
-    build:
-      context: ./nginx
-    image: ${DOCKER_REGISTRY}my_nginx
-    container_name: nginx
-    restart: "unless-stopped"
-    environment:
-      - TZ=Europe/Berlin
-    labels:
-      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=proxy"
-    volumes:
-      - "~/docker/nginx/html:/usr/share/nginx/html"
-      - "~/docker/nginx/tileboard:/usr/share/nginx/html/tileboard"
-    networks:
-      - proxy
+    nginx:
+        build:
+          context: ./nginx
+        image: ${DOCKER_REGISTRY}my_nginx
+        container_name: nginx
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        volumes:
+          - "~/docker/nginx/html:/usr/share/nginx/html"
+          - "~/docker/nginx/tileboard:/usr/share/nginx/html/tileboard"
+        networks:
+          - proxy
 
-  nodered:
-    image: ${DOCKER_REGISTRY}nodered/node-red
-    container_name: nodered
-    restart: "unless-stopped"
-    depends_on:
-      - mosquitto
-    environment:
-      - TZ=Europe/Berlin
-      - PARENT_HOSTNAME=${HOSTNAME}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=proxy"
-    volumes:
-      - "~/docker/nodered:/data"
-      - "~/docker/nginx/html:/var/www/html"
-    networks:
-      - proxy
-      - backbone
+    nodered:
+        image: ${DOCKER_REGISTRY}nodered/node-red
+        container_name: nodered
+        restart: ${DOCKER_RESTART_POLICY}
+        depends_on:
+          - mosquitto
+        environment:
+          - TZ=Europe/Berlin
+          - PARENT_HOSTNAME=${HOSTNAME}
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        volumes:
+          - "~/docker/nodered:/data"
+          - "~/docker/nginx/html:/var/www/html"
+        networks:
+          - proxy
+          - backbone

@@ -19,9 +19,9 @@ services:
         image: portainer/portainer-ee:latest
         # image: portainer/portainer-ee:2.15.0
         container_name: portainer
+        restart: always
         environment:
           - TZ=Europe/Berlin
-        restart: always
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - portainer_data:/data
@@ -39,7 +39,7 @@ services:
             com.centurylinklabs.watchtower.enable: "false"
         image: nodemcu-builder
         container_name: nodemcu-esp32
-        restart: "no"
+        restart: no
         environment:
           - TZ=Europe/Berlin
         labels:
@@ -63,7 +63,7 @@ services:
             com.centurylinklabs.watchtower.enable: "false"
         image: nodemcu-builder
         container_name: nodemcu-esp8266
-        restart: "no"
+        restart: no
         environment:
           - TZ=Europe/Berlin
         labels:
@@ -83,7 +83,7 @@ services:
             com.centurylinklabs.watchtower.enable: "false"
         image: qtcreator
         container_name: qtcreator
-        restart: "no"
+        restart: no
         environment:
           - TZ=Europe/Berlin
           - DISPLAY=host.docker.internal:0.0

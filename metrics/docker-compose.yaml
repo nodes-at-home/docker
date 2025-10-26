@@ -6,110 +6,110 @@
 
 networks:
 
-  proxy:
-    external: true
+    proxy:
+        external: true
 
-  metrics:
-    external: true
+    metrics:
+        external: true
 
-  backbone:
-    external: true
+    backbone:
+        external: true
 
 services:
 
-  prometheus:
-    image: ${DOCKER_REGISTRY}prom/prometheus
-    container_name: prometheus
-    restart: "always"
-    environment:
-      - TZ=Europe/Berlin
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=metrics"
-    depends_on:
-      - cadvisor
-      - node-exporter
-    volumes:
-      - "~/docker/prometheus/data:/prometheus"
-      - "~/docker/docker/metrics/prometheus.yaml:/etc/prometheus/prometheus.yml"
-    networks:
-      - metrics
+    prometheus:
+        image: ${DOCKER_REGISTRY}prom/prometheus
+        container_name: prometheus
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=metrics"
+        depends_on:
+          - cadvisor
+          - node-exporter
+        volumes:
+          - "~/docker/prometheus/data:/prometheus"
+          - "~/docker/docker/metrics/prometheus.yaml:/etc/prometheus/prometheus.yml"
+        networks:
+          - metrics
 
-  cadvisor:
-    image: ${DOCKER_REGISTRY}zcube/cadvisor
-    container_name: cadvisor
-    restart: "always"
-    environment:
-      - TZ=Europe/Berlin
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=metrics"
-    volumes:
-      - "/:/rootfs:ro"
-      - "/var/run:/var/run:rw"
-      - "/sys:/sys:ro"
-      - "/var/lib/docker/:/var/lib/docker:ro"
-      - "/dev/disk/:/dev/disk:ro"
-    networks:
-      - metrics
+    cadvisor:
+        image: ${DOCKER_REGISTRY}zcube/cadvisor
+        container_name: cadvisor
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=metrics"
+        volumes:
+          - "/:/rootfs:ro"
+          - "/var/run:/var/run:rw"
+          - "/sys:/sys:ro"
+          - "/var/lib/docker/:/var/lib/docker:ro"
+          - "/dev/disk/:/dev/disk:ro"
+        networks:
+          - metrics
 
-  node-exporter:
-    image: ${DOCKER_REGISTRY}prom/node-exporter
-    command: "--collector.textfile.directory=/data"
-    container_name: node-exporter
-    restart: "always"
-    environment:
-      - TZ=Europe/Berlin
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=metrics"
-    volumes:
-      - "/var/lib/node_exporter/textfile_collector:/data"
-    networks:
-      - metrics
+    node-exporter:
+        image: ${DOCKER_REGISTRY}prom/node-exporter
+        command: "--collector.textfile.directory=/data"
+        container_name: node-exporter
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=metrics"
+        volumes:
+          - "/var/lib/node_exporter/textfile_collector:/data"
+        networks:
+          - metrics
 
-  fritzbox:
-    build:
-      context: ./fritzbox
-    image: ${DOCKER_REGISTRY}my_fritzbox
-    container_name: fritzbox
-    restart: "unless-stopped"
-    environment:
-      - TZ=Europe/Berlin
-      - INFLUX_TOKEN
-      - INFLUX_ORG
-      - FRITZBOX_HOST
-      - FRITZBOX_USERNAME
-      - FRITZBOX_PASSWORD
-    labels:
-      - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
-      - "traefik.enable=false"
-    volumes:
-      - "~/docker/docker/metrics/fritzbox:/app"
-    networks:
-      - backbone
+    fritzbox:
+        build:
+          context: ./fritzbox
+        image: ${DOCKER_REGISTRY}my_fritzbox
+        container_name: fritzbox
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+          - INFLUX_TOKEN
+          - INFLUX_ORG
+          - FRITZBOX_HOST
+          - FRITZBOX_USERNAME
+          - FRITZBOX_PASSWORD
+        labels:
+          - com.centurylinklabs.watchtower.enable=${WATCHTOWER_CHECK_BUILD_IMAGE}
+          - "traefik.enable=false"
+        volumes:
+          - "~/docker/docker/metrics/fritzbox:/app"
+        networks:
+          - backbone
 
-  grafana:
-    image: ${DOCKER_REGISTRY}grafana/grafana
-    container_name: grafana
-    restart: "unless-stopped"
-    environment:
-      - TZ=Europe/Berlin
-      - GF_SERVER_DOMAIN=${HOSTNAME}
-      - GF_SERVER_ROOT_URL=https://${HOSTNAME}/grafana
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dontuse.entrypoints=dontuse"
-      - "traefik.docker.network=proxy"
-    depends_on:
-      - prometheus
-    volumes:
-      - "~/docker/grafana:/var/lib/grafana"
-    networks:
-      - proxy
-      - metrics
-      - backbone
+    grafana:
+        image: ${DOCKER_REGISTRY}grafana/grafana
+        container_name: grafana
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+          - GF_SERVER_DOMAIN=${HOSTNAME}
+          - GF_SERVER_ROOT_URL=https://${HOSTNAME}/grafana
+          - GF_SERVER_SERVE_FROM_SUB_PATH=true
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        depends_on:
+          - prometheus
+        volumes:
+          - "~/docker/grafana:/var/lib/grafana"
+        networks:
+          - proxy
+          - metrics
+          - backbone

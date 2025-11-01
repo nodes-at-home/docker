@@ -15,15 +15,18 @@ networks:
 services:
 
     n8n:
-        image: n8nio/n8n:latest
+        image: ${DOCKER_REGISTRY}n8nio/n8n:latest
         container_name: n8n
         restart: no
         environment:
           - TZ=Europe/Berlin
-          - N8N_HOST=andreas-book4
+          - GENERIC_TIMEZONE=Europe/Berlin
+          - N8N_HOST=${HOSTNAME}
           - N8N_PORT=5678
-          - N8N_PROTOCOL=http
+          - N8N_PROTOCOL=https
           - N8N_SECURE_COOKIE=false
+          - WEBHOOK_URL=http://localhost:5678/
+          - N8N_PATH=/n8n/
         labels:
           - "traefik.enable=true"
           - "traefik.http.routers.dontuse.entrypoints=dontuse"
@@ -32,29 +35,31 @@ services:
           - ollama
         volumes:
           - ~/docker/n8n:/home/node/.n8n
+          - ~/docker/n8n/certificates:/opt/custom_certificates:ro
         networks:
           - proxy
           - backbone
 
     ollama:
-        image: ollama/ollama
+        image: ${DOCKER_REGISTRY}ollama/ollama
         container_name: ollama
         restart: no
         environment:
           - TZ=Europe/Berlin
+          - OLLAMA_LOG_LEVEL=debug
         labels:
           - "traefik.enable=false"
-        # ports:
-        #   - "11434:11434"  # Standard-Port für die API
+        ports:
+          - "11434:11434"  # Standard-Port für die API
         volumes:
           - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
         deploy:
-          resources:
-            reservations:
-              devices:
-              - driver: nvidia
-                capabilities: ["gpu"]
-                count: all  # Adjust count for the number of GPUs you want to use        
+            resources:
+                reservations:
+                    devices:
+                      - driver: nvidia
+                        capabilities: ["gpu"]
+                        count: all  # Adjust count for the number of GPUs you want to use
         networks:
           - backbone
 
@@ -81,3 +86,59 @@ services:
         networks:
           - proxy
           - backbone
+
+    # https://community.home-assistant.io/t/whisper-on-gpu/903694
+    whisper:
+        image: lscr.io/linuxserver/faster-whisper:gpu
+        container_name: faster-whisper-gpu
+        restart: no
+        environment:
+          - TZ=Europe/Berlin
+          - PUID=1000
+          - PGID=1000
+          - WHISPER_MODEL=large-v3
+          - WHISPER_LANG=de
+          - WHISPER_BEAM=20
+          - LOG_LEVEL=DEBUG
+        volumes:
+          - ~/docker/whisper/data:/config
+          - ~/docker/whisper/run:/etc/s6-overlay/s6-rc.d/svc-whisper/run
+        ports:
+          - 10300:10300
+        # network_mode: host
+        runtime: nvidia
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                      - driver: nvidia
+                        count: all
+                        capabilities:
+                          - gpu
+                          - utility
+                          - compute
+
+    piper:
+        image: wyoming-piper-gpu
+        container_name: piper
+        build:
+          context: ./wyoming-piper-gpu
+        restart: no
+        environment:
+          - TZ=Europe/Berlin
+          - PIPER_VOICE=de_DE-thorsten-high
+        volumes:
+          - ~/docker/piper/data:/data
+        ports:
+          - "10201:10200"
+        runtime: nvidia
+        deploy:
+          resources:
+            reservations:
+              devices:
+              - driver: nvidia
+                count: all
+                capabilities:
+                  - gpu
+                  - utility
+                  - compute

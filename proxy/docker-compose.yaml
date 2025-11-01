@@ -54,7 +54,6 @@ services:
         restart: ${DOCKER_RESTART_POLICY}
         depends_on:
           - traefik
-        restart: "unless-stopped"
         environment:
           - TZ=Europe/Berlin
         labels:

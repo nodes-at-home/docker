@@ -178,11 +178,12 @@ http:
 
         n8n:
             entryPoints:
-              - 'n8n_secure'
-            rule: 'Host(`{{ env "PARENT_HOSTNAME" }}`)'
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/n8n`)'
             middlewares:
               - pokemonnet
-            service: n8n-ai@docker
+              - stripprefix
+            service: n8n
             tls:
                 options: intermediate
 
@@ -197,6 +198,7 @@ http:
                 prefixes:
                   - '/octoprint'
                   - '/registry'
+                  - '/n8n'
         web-redirect:
             redirectScheme:
                 scheme: https
@@ -225,3 +227,7 @@ http:
             loadBalancer:
                 servers:
                   - url: ''
+        n8n:
+            loadBalancer:
+                servers:
+                  - url: 'http://n8n:5678'

@@ -9,10 +9,44 @@ fi
 
 [ -z "$1" ] && echo "ERROR: first parameter must bee the app to restart!" && exit
 
+find_stack () {
+
+    echo $( grep "$1:$" ./*/docker-compose.yaml | cut -d/ -f2 )
+
+}
+
+platform () {
+
+    result="$(uname -n)"
+
+    case "${result}" in
+        andreas-book4*)    result=wsl2;;
+    esac
+
+    echo ${result}
+
+}
+
 pushd "$HOME/docker/docker"
 
 APP=$1
-STACK=`grep "${APP}:$" ./*/docker-compose.yaml | cut -d/ -f2`
+
+STACK=$(find_stack "$APP")
+# echo "step 1 STACK=${STACK}"
+
+if [ -z "$STACK" ]
+then
+    APP="${APP}-$(platform)"
+    STACK=$(find_stack "$APP")
+    # echo "step 2 STACK=${STACK}"
+fi
+
+if [ -z "$STACK" ]
+then
+    echo "ERROR: could not find stack for app '$APP'"
+    popd
+    exit 1
+fi
 
 echo "Restarting $APP in $STACK"
 

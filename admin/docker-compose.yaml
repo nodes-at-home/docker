@@ -136,5 +136,4 @@ services:
           - ~/docker:/config/workspace
         # ports:
           # - 8443:8443
-        restart: unless-stopped
 

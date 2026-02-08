@@ -6,7 +6,7 @@ devices:
 
     # sh10rt master
   - modbus:
-        url: 192.168.2.184:502
+        url: 192.168.120.13:502
         timeout: 10
         connection_time: 1
     listen:
@@ -14,7 +14,7 @@ devices:
 
     # sh10rt slave
   - modbus:
-        url: 192.168.2.186:502
+        url: 192.168.120.14:502
         timeout: 10
         connection_time: 1
     listen:
@@ -22,7 +22,7 @@ devices:
 
     # go-echarger
   - modbus:
-        url: go-echarger.fritz.box:502
+        url: go-echarger:502
         timeout: 10
         connection_time: 1
     listen:

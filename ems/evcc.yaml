@@ -78,7 +78,7 @@ meters:
       template: sungrow-hybrid 
       usage: pv  
       modbus: tcpip  
-      host: nodesathome1.fritz.box
+      host: nodesathome1
       port: 5021
       id: 1  
       timeout: 5s
@@ -87,7 +87,7 @@ meters:
       template: sungrow-hybrid
       usage: battery
       modbus: tcpip  
-      host: nodesathome1.fritz.box
+      host: nodesathome1
       port: 5021
       id: 1
       timeout: 5s
@@ -96,7 +96,7 @@ meters:
       template: sungrow-hybrid 
       usage: pv  
       modbus: tcpip  
-      host: nodesathome1.fritz.box
+      host: nodesathome1
       port: 5022
       id: 2
       timeout: 5s
@@ -105,7 +105,7 @@ chargers:
     - name: go-echarger
       type: template
       template: go-e-v3
-      host: go-echarger.fritz.box
+      host: go-echarger
 
 vehicles:
   - name: kia-ev6

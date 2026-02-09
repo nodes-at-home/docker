@@ -91,6 +91,9 @@ meters:
       port: 5021
       id: 1
       timeout: 5s
+      maxchargepower: 10600
+      maxdischargepower: 10600
+      capacity: 12.8
     - name: sh10rt_slave
       type: template
       template: sungrow-hybrid 

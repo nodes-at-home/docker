@@ -15,7 +15,12 @@ networks:
 services:
 
     influxdb:
-        image: ${DOCKER_REGISTRY}influxdb:latest
+        # 25.02.2026
+        # On April 7, 2026, the latest tag for InfluxDB Docker images will point to InfluxDB 3 Core.
+        # To avoid unexpected upgrades, use specific version tags in your Docker deployments.
+        # For example, if using Docker to run InfluxDB v2, replace the latest version tag with
+        # a specific version tag in your Docker pull command–for example: docker pull influxdb:2
+        image: ${DOCKER_REGISTRY}influxdb:2
         container_name: influxdb
         restart: ${DOCKER_RESTART_POLICY}
         environment:

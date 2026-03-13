@@ -15,7 +15,8 @@ networks:
 services:
 
     watchtower:
-        image: ${DOCKER_REGISTRY}containrrr/watchtower
+        # containrrr/watchtower is no longer maintained
+        image: ${DOCKER_REGISTRY}nickfedor/watchtower:latest
         container_name: watchtower
         restart: ${DOCKER_RESTART_POLICY}
         volumes:

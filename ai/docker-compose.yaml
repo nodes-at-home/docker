@@ -4,6 +4,104 @@
 
 # ai/docker-compose.yaml
 
+x-deploy_nvidia: &deploy_nvidia
+    deploy:
+        resources:
+            reservations:
+                devices:
+                  - driver: nvidia
+                    count: all
+                    capabilities:
+                      - gpu
+                      - utility
+                      - compute
+
+x-ollama_image_jetson: &ollama_image_jetson
+    image: ${DOCKER_REGISTRY}dustynv/ollama:0.6.8-r36.4-cu126-22.04
+    volumes:
+      - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
+      - ~/docker/docker/ai/start_ollama_and_idle.sh:/opt/start_ollama_and_idle.sh
+    entrypoint: ["/opt/start_ollama_and_idle.sh"]
+
+x-ollama_image_wsl2: &ollama_image_wsl2
+    image: ${DOCKER_REGISTRY}dustynv/ollama:0.6.8-r36.4-cu126-22.04
+    volumes:
+      - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
+
+x-ollama_container: &ollama_container
+    container_name: ollama
+    restart: ${DOCKER_RESTART_POLICY}
+    environment:
+      - TZ=Europe/Berlin
+      - OLLAMA_LOG_LEVEL=debug
+      - OLLAMA_MODELS=/root/.ollama/models
+      - JETSON_JETPACK=6
+    labels:
+      - "traefik.enable=false"
+    ports:
+      - "11434:11434"  # Standard-Port für die API
+    networks:
+      - backbone
+
+### Wyoming Piper Containers
+### https://github.com/dusty-nv/jetson-containers/tree/master/packages/smart-home/wyoming/wyoming-piper
+###
+x-piper-jetson: &piper_jetson
+    image: dustynv/wyoming-piper:master-r36.2.0
+
+x-piper-wsl2: &piper_wsl2
+    image: wyoming-piper-gpu
+    build:
+      context: ./wyoming-piper-gpu
+
+x-piper: &piper_container
+    container_name: piper
+    restart: ${DOCKER_RESTART_POLICY}
+    environment:
+      - TZ=Europe/Berlin
+      - PIPER_VOICE=de_DE-thorsten-high
+    labels:
+      - "traefik.enable=false"
+    volumes:
+      - ~/docker/piper/data:/data
+    ports:
+      - "10201:10200"
+    runtime: nvidia
+    << : *deploy_nvidia
+
+x-whisper-jetson: &whisper_jetson
+    image: dustynv/wyoming-whisper:latest-r36.2.0
+    volumes:
+      - ~/docker/whisper/models:/share/whisper
+      - ~/docker/whisper/data:/data
+
+# https://community.home-assistant.io/t/whisper-on-gpu/903694
+x-whisper-wsl2: &whisper_wsl2
+    image: lscr.io/linuxserver/faster-whisper:gpu
+    volumes:
+      - ~/docker/whisper/data:/config
+      - ~/docker/whisper/run:/etc/s6-overlay/s6-rc.d/svc-whisper/run
+
+x-whisper: &whisper_container
+    container_name: whisper
+    restart: ${DOCKER_RESTART_POLICY}
+    environment:
+      - TZ=Europe/Berlin
+      - PUID=1000
+      - PGID=1000
+      - WHISPER_MODEL=large-v3
+      - WHISPER_LANG=de
+      - WHISPER_BEAM=20
+      - LOG_LEVEL=DEBUG
+    labels:
+      - "traefik.enable=false"
+    ports:
+      - 10300:10300
+      - 10300:10300/tcp
+    # network_mode: host
+    runtime: nvidia
+    << : *deploy_nvidia
+
 networks:
 
   proxy:
@@ -17,7 +115,7 @@ services:
     n8n:
         image: ${DOCKER_REGISTRY}n8nio/n8n:latest
         container_name: n8n
-        restart: no
+        restart: ${DOCKER_RESTART_POLICY}
         environment:
           - TZ=Europe/Berlin
           - GENERIC_TIMEZONE=Europe/Berlin
@@ -31,8 +129,8 @@ services:
           - "traefik.enable=true"
           - "traefik.http.routers.dontuse.entrypoints=dontuse"
           - "traefik.docker.network=proxy"
-        depends_on:
-          - ollama
+        # depends_on:
+        #   - ollama
         volumes:
           - ~/docker/n8n:/home/node/.n8n
           - ~/docker/n8n/certificates:/opt/custom_certificates:ro
@@ -40,33 +138,16 @@ services:
           - proxy
           - backbone
 
-    ollama:
-        image: ${DOCKER_REGISTRY}ollama/ollama
-        container_name: ollama
-        restart: no
-        environment:
-          - TZ=Europe/Berlin
-          - OLLAMA_LOG_LEVEL=debug
-        labels:
-          - "traefik.enable=false"
-        ports:
-          - "11434:11434"  # Standard-Port für die API
-        volumes:
-          - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
-        deploy:
-            resources:
-                reservations:
-                    devices:
-                      - driver: nvidia
-                        capabilities: ["gpu"]
-                        count: all  # Adjust count for the number of GPUs you want to use
-        networks:
-          - backbone
+    ollama-jetson:
+        << : [*ollama_image_jetson, *ollama_container]
+
+    ollama-wsl2:
+        << : [*ollama_image_wsl2, *ollama_container]
 
     open-webui:
         image: ghcr.io/open-webui/open-webui:main
         container_name: open-webui
-        restart: no
+        restart: ${DOCKER_RESTART_POLICY}
         environment:
           - TZ=Europe/Berlin
           - OLLAMA_BASE_URL=http://ollama:11434
@@ -79,66 +160,20 @@ services:
           - "traefik.http.routers.dontuse.entrypoints=dontuse"
           # - "traefik.http.services.open-webui-ai.loadbalancer.server.port=8080"
           - "traefik.docker.network=proxy"
-        depends_on:
-          - ollama
         volumes:
           - ~/docker/openwebui:/app/backend/data
         networks:
           - proxy
           - backbone
 
-    # https://community.home-assistant.io/t/whisper-on-gpu/903694
-    whisper:
-        image: lscr.io/linuxserver/faster-whisper:gpu
-        container_name: faster-whisper-gpu
-        restart: no
-        environment:
-          - TZ=Europe/Berlin
-          - PUID=1000
-          - PGID=1000
-          - WHISPER_MODEL=large-v3
-          - WHISPER_LANG=de
-          - WHISPER_BEAM=20
-          - LOG_LEVEL=DEBUG
-        volumes:
-          - ~/docker/whisper/data:/config
-          - ~/docker/whisper/run:/etc/s6-overlay/s6-rc.d/svc-whisper/run
-        ports:
-          - 10300:10300
-        # network_mode: host
-        runtime: nvidia
-        deploy:
-            resources:
-                reservations:
-                    devices:
-                      - driver: nvidia
-                        count: all
-                        capabilities:
-                          - gpu
-                          - utility
-                          - compute
+    whisper-jetson:
+        << : [*whisper_jetson, *whisper_container]
 
-    piper:
-        image: wyoming-piper-gpu
-        container_name: piper
-        build:
-          context: ./wyoming-piper-gpu
-        restart: no
-        environment:
-          - TZ=Europe/Berlin
-          - PIPER_VOICE=de_DE-thorsten-high
-        volumes:
-          - ~/docker/piper/data:/data
-        ports:
-          - "10201:10200"
-        runtime: nvidia
-        deploy:
-          resources:
-            reservations:
-              devices:
-              - driver: nvidia
-                count: all
-                capabilities:
-                  - gpu
-                  - utility
-                  - compute
+    whisper-wsl2:
+        << : [*whisper_wsl2, *whisper_container]
+
+    piper-jetson:
+        << : [*piper_jetson, *piper_container]
+
+    piper-wsl2:
+        << : [*piper_wsl2, *piper_container]

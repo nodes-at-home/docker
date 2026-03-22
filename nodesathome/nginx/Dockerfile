@@ -3,7 +3,8 @@ FROM alpine:latest
 RUN set -e \
       && apk add --update --no-cache \
             nginx \
-            openssh-client
+            openssh-client \
+            git
 
 RUN set -eo pipefail \
       && grep -n -e $'^[ \t]*location / {$' /etc/nginx/http.d/default.conf \

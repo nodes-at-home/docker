@@ -1,6 +1,6 @@
 ###
 ### junand 10.10.2025
-###
+### containerized AI services for Nvidia Jetson AGX Thor 128GB
 
 # ai/docker-compose.yaml
 
@@ -16,33 +16,6 @@ x-deploy_nvidia: &deploy_nvidia
                       - utility
                       - compute
 
-x-ollama_image_jetson: &ollama_image_jetson
-    image: ${DOCKER_REGISTRY}dustynv/ollama:0.6.8-r36.4-cu126-22.04
-    volumes:
-      - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
-      - ~/docker/docker/ai/start_ollama_and_idle.sh:/opt/start_ollama_and_idle.sh
-    entrypoint: ["/opt/start_ollama_and_idle.sh"]
-
-x-ollama_image_wsl2: &ollama_image_wsl2
-    image: ${DOCKER_REGISTRY}dustynv/ollama:0.6.8-r36.4-cu126-22.04
-    volumes:
-      - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
-
-x-ollama_container: &ollama_container
-    container_name: ollama
-    restart: ${DOCKER_RESTART_POLICY}
-    environment:
-      - TZ=Europe/Berlin
-      - OLLAMA_LOG_LEVEL=debug
-      - OLLAMA_MODELS=/root/.ollama/models
-      - JETSON_JETPACK=6
-    labels:
-      - "traefik.enable=false"
-    ports:
-      - "11434:11434"  # Standard-Port für die API
-    networks:
-      - backbone
-
 ### Wyoming Piper Containers
 ### https://github.com/dusty-nv/jetson-containers/tree/master/packages/smart-home/wyoming/wyoming-piper
 ###
@@ -56,7 +29,7 @@ x-piper-wsl2: &piper_wsl2
 
 x-piper: &piper_container
     container_name: piper
-    restart: ${DOCKER_RESTART_POLICY}
+    restart: unless-stopped
     environment:
       - TZ=Europe/Berlin
       - PIPER_VOICE=de_DE-thorsten-high
@@ -84,7 +57,7 @@ x-whisper-wsl2: &whisper_wsl2
 
 x-whisper: &whisper_container
     container_name: whisper
-    restart: ${DOCKER_RESTART_POLICY}
+    restart: unless-stopped
     environment:
       - TZ=Europe/Berlin
       - PUID=1000
@@ -102,69 +75,74 @@ x-whisper: &whisper_container
     runtime: nvidia
     << : *deploy_nvidia
 
-networks:
-
-  proxy:
-    external: true
-
-  backbone:
-    external: true
-
 services:
 
-    n8n:
-        image: ${DOCKER_REGISTRY}n8nio/n8n:latest
-        container_name: n8n
-        restart: ${DOCKER_RESTART_POLICY}
-        environment:
-          - TZ=Europe/Berlin
-          - GENERIC_TIMEZONE=Europe/Berlin
-          - N8N_HOST=${HOSTNAME}
-          - N8N_PORT=5678
-          - N8N_PROTOCOL=https
-          - N8N_SECURE_COOKIE=false
-          - WEBHOOK_URL=http://localhost:5678/
-          - N8N_PATH=/n8n/
-        labels:
-          - "traefik.enable=true"
-          - "traefik.http.routers.dontuse.entrypoints=dontuse"
-          - "traefik.docker.network=proxy"
-        # depends_on:
-        #   - ollama
-        volumes:
-          - ~/docker/n8n:/home/node/.n8n
-          - ~/docker/n8n/certificates:/opt/custom_certificates:ro
-        networks:
-          - proxy
-          - backbone
-
-    ollama-jetson:
-        << : [*ollama_image_jetson, *ollama_container]
-
     ollama-wsl2:
-        << : [*ollama_image_wsl2, *ollama_container]
-
-    open-webui:
-        image: ghcr.io/open-webui/open-webui:main
-        container_name: open-webui
-        restart: ${DOCKER_RESTART_POLICY}
+        image: ${DOCKER_REGISTRY}dustynv/ollama:0.6.8-r36.4-cu126-22.04
+        container_name: ollama
+        restart: unless-stopped
         environment:
           - TZ=Europe/Berlin
-          - OLLAMA_BASE_URL=http://ollama:11434
-          - WEBUI_AUTH=False
-          - PORT=3000
-        expose:
-          - "3000"
+          - OLLAMA_NO_CLOUD=1
+          - OLLAMA_LOG_LEVEL=debug
+          - OLLAMA_MODELS=/root/.ollama/models
+          - JETSON_JETPACK=6
         labels:
-          - "traefik.enable=true"
-          - "traefik.http.routers.dontuse.entrypoints=dontuse"
-          # - "traefik.http.services.open-webui-ai.loadbalancer.server.port=8080"
-          - "traefik.docker.network=proxy"
+          - "traefik.enable=false"
         volumes:
-          - ~/docker/openwebui:/app/backend/data
-        networks:
-          - proxy
-          - backbone
+          - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
+          - ~/docker/docker/ai/start_ollama_and_idle.sh:/opt/start_ollama_and_idle.sh
+        ports:
+          - "11434:11434"  # Standard-Port für die API
+        # entrypoint: ["/opt/start_ollama_and_idle.sh"]
+        runtime: nvidia
+        << : *deploy_nvidia
+
+    ollama-nano:
+        image: ${DOCKER_REGISTRY}dustynv/ollama:0.6.8-r36.4-cu126-22.04
+        container_name: ollama
+        restart: unless-stopped
+        environment:
+          - TZ=Europe/Berlin
+          - OLLAMA_NO_CLOUD=1
+          - OLLAMA_LOG_LEVEL=debug
+          - OLLAMA_MODELS=/root/.ollama/models
+          - JETSON_JETPACK=6
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
+          - ~/docker/docker/ai/start_ollama_and_idle.sh:/opt/start_ollama_and_idle.sh
+        ports:
+          - "11434:11434"  # Standard-Port für die API
+        entrypoint: ["/opt/start_ollama_and_idle.sh"]
+        runtime: nvidia
+        << : *deploy_nvidia
+
+    ollama-thor:
+        image: ollama:r39.1.arm64-sbsa-cu132-24.04-ollama
+        container_name: ollama
+        restart: unless-stopped
+        environment:
+          - TZ=Europe/Berlin
+          - OLLAMA_NO_CLOUD=1
+          - OLLAMA_LOG_LEVEL=debug
+          - OLLAMA_MODELS=/root/.ollama/models
+          - OLLAMA_MAX_LOADED_MODELS=5
+          - OLLAMA_FLASH_ATTENTION=1
+          - OLLAMA_KV_CACHE_TYPE=q8_0
+          - OLLAMA_NUM_PARALLEL=2
+          - OLLAMA_NUM_GPU_LAYERS=999
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
+          - ~/docker/docker/ai/start_ollama_and_idle.sh:/opt/start_ollama_and_idle.sh
+        ports:
+          - "11434:11434"  # Standard-Port für die API
+        entrypoint: ["/opt/start_ollama_and_idle.sh"]
+        # runtime: nvidia
+        # << : *deploy_nvidia
 
     whisper-jetson:
         << : [*whisper_jetson, *whisper_container]
@@ -177,3 +155,185 @@ services:
 
     piper-wsl2:
         << : [*piper_wsl2, *piper_container]
+
+    ### vLLM OpenAI-compatible server
+    ### https://www.jetson-ai-lab.com/models/
+    ### https://docs.vllm.ai/en/stable/deployment/docker/
+
+    ### https://www.jetson-ai-lab.com/models/qwen3-6-35b-a3b/
+    ### https://huggingface.co/RedHatAI/Qwen3.6-35B-A3B-NVFP4
+
+    vllm_qwen36_redhat:
+        image: vllm/vllm-openai:v0.23.0-aarch64-ubuntu2404
+        container_name: vllm_qwen_3_6
+        restart: unless-stopped
+        pull_policy: always
+        environment:
+          - TZ=Europe/Berlin
+          - HF_TOKEN=${HF_TOKEN}
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/vllm:/root/.cache/huggingface
+        # ipc: host
+        # shm_size: '8gb'
+        ports:
+          - 8000:8000
+        healthcheck:
+          test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8000/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
+          interval: 20s
+          timeout: 5s
+          retries: 10
+          start_period: 20m
+        entrypoint: ["bash", "-c"]
+        command:
+          - >-
+            pip install -q 'vllm[audio]' &&
+            exec vllm serve RedHatAI/Qwen3.6-35B-A3B-NVFP4
+            --port 8000
+            --max-model-len 262144
+            --gpu-memory-utilization 0.85
+            --enforce-eager
+            --dtype auto
+            --max-num-batched-tokens 4096
+            --enable-prefix-caching
+            --reasoning-parser qwen3
+            --enable-auto-tool-choice
+            --tool-call-parser qwen3_coder
+            --speculative-config '{"method":"mtp","num_speculative_tokens":2}'
+            --language-model-only
+        runtime: nvidia
+        << : *deploy_nvidia
+
+    ### https://huggingface.co/RedHatAI/Qwen3-Coder-Next-NVFP4
+    vllm_qwen3coder_redhat:
+        image: vllm/vllm-openai:v0.23.0-aarch64-ubuntu2404
+        container_name: vllm_qwen_3_coder_next
+        restart: unless-stopped
+        pull_policy: always
+        environment:
+          - TZ=Europe/Berlin
+          - HF_TOKEN=${HF_TOKEN}
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/vllm:/root/.cache/huggingface
+        # ipc: host
+        # shm_size: '8gb'
+        ports:
+          - 8001:8001
+        healthcheck:
+          test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8001/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
+          interval: 20s
+          timeout: 5s
+          retries: 10
+          start_period: 20m
+        entrypoint: ["bash", "-c"]
+        command:
+          - >-
+            exec vllm serve RedHatAI/Qwen3-Coder-Next-NVFP4
+            --port 8001
+            --tensor-parallel-size 1
+            --max-model-len 65536
+            --gpu-memory-utilization 0.9
+            --enforce-eager
+            --dtype auto
+            --max-num-seqs 1
+            --max-num-batched-tokens 8192
+            --enable-auto-tool-choice
+            --tool-call-parser qwen3_coder
+        runtime: nvidia
+        << : *deploy_nvidia
+
+    ### https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4
+    vllm_nemotron3super:
+        image: vllm/vllm-openai:v0.23.0-aarch64-ubuntu2404
+        container_name: vllm_nemotron_3_super
+        restart: unless-stopped
+        pull_policy: always
+        environment:
+          - TZ=Europe/Berlin
+          - HF_TOKEN=${HF_TOKEN}
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/vllm:/root/.cache/huggingface
+        # ipc: host
+        # shm_size: '8gb'
+        ports:
+          - 8002:8002
+        healthcheck:
+          test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8002/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
+          interval: 20s
+          timeout: 5s
+          retries: 10
+          start_period: 20m
+        entrypoint: ["bash", "-c"]
+        command:
+          - >-
+            exec vllm serve nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4
+            --port 8002
+            --served-model-name nvidia/nemotron-3-super
+            --async-scheduling
+            --dtype auto
+            --max-model-len 262144
+            --trust-remote-code
+            --kv-cache-dtype fp8
+            --gpu-memory-utilization 0.9
+            --max-cudagraph-capture-size 128
+            --enable-chunked-prefill
+            --mamba-ssm-cache-dtype float16
+            --reasoning-parser nemotron_v3
+            --enable-auto-tool-choice
+            --tool-call-parser qwen3_coder
+        runtime: nvidia
+        << : *deploy_nvidia
+
+    ### https://huggingface.co/nvidia/Qwen3.6-27B-NVFP4
+    vllm_qwen36_27b_nvidia:
+        image: vllm/vllm-openai:v0.23.0-aarch64-ubuntu2404                                                                                                                
+        container_name: vllm_qwen3_6_27b_nvidia                                                                                                                           
+        restart: unless-stopped                                                                                                                                           
+        pull_policy: always                                                                                                                                               
+        environment:                                                                                                                                                      
+          - TZ=Europe/Berlin                                                                                                                                              
+          - HF_TOKEN=${HF_TOKEN}                                                                                                                                          
+          # ── vLLM v1 Engine (2-3x schneller) ──                                                                                                                         
+          - VLLM_USE_V1=1                                                                                                                                                 
+          # ── CUDA Graphs für GPU-Kernel-Caching ──                                                                                                                      
+          - VLLM_USE_CUDAGRAPH=1                                                                                                                                          
+        labels:                                                                                                                                                           
+          - "traefik.enable=false"                                                                                                                                        
+        volumes:                                                                                                                                                          
+          - ~/docker/vllm:/root/.cache/huggingface                                                                                                                        
+        shm_size: '16gb'                                                                                                                                                  
+        ports:                                                                                                                                                            
+          - 8003:8003                                                                                                                                                     
+        healthcheck:                                                                                                                                                      
+            test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8003/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]                                                                             
+            interval: 20s                                                                                                                                                   
+            timeout: 5s                                                                                                                                                     
+            retries: 10                                                                                                                                                     
+            start_period: 20m                                                                                                                                               
+        entrypoint: ["bash", "-c"]                                                                                                                                        
+        command:                                                                                                                                                          
+          - >-                                                                                                                                                            
+            exec vllm serve nvidia/Qwen3.6-27B-NVFP4                                                                                                                      
+            --port 8003                                                                                                                                                   
+            --quantization modelopt
+            --kv-cache-dtype fp8
+            --gpu-memory-utilization 0.85
+            --max-model-len 131072
+            --reasoning-parser qwen3                                                                                                                                      
+            --enable-auto-tool-choice                                                                                                                                     
+            --tool-call-parser qwen3_coder                                                                                                                                
+            --enable-prefix-caching                                                                                                                                       
+            --enable-chunked-prefill                                                                                                                                      
+            --max-num-seqs 256
+        runtime: nvidia  
+        << : *deploy_nvidia
+    
+    ### https://huggingface.co/nvidia/MiniMax-M3-NVFP4
+    ### https://huggingface.co/s-batman/Ornith-1.0-35B-NVFP4-MTP-GGUF
+
+    

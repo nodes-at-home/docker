@@ -38,6 +38,19 @@ Dieses Repo enthält die Docker-Compose-Stacks des Homelabs. Sprache: **Deutsch*
   Auf Thor (128 GB) NICHT setzen.
 - Registry `nodesathome1:5000` ist self-signed (CA `nodesathome`).
 
+## Jetson Thor Skills
+- Die Jetson-Workspace-Skills liegen unter `.github/skills/` und sind über Symlinks aus `~/GIT/jetson-device-skills/skills/` eingebunden.
+- Für Jetson-Thor-Themen zuerst die passenden Skills nutzen:
+  - `jetson-diagnostic` für Device-Snapshot, Speicher, GPU, Thermik, Storage und Services.
+  - `jetson-memory-audit` für belegten RAM und Freigabe nach Container-Änderungen.
+  - `jetson-inference-mem-tune` für LLM-/VLM-Speicher- und Launch-Parameter.
+  - `jetson-llm-serve` für vLLM- oder SGLang-Serving-Rezepte.
+  - `jetson-llm-benchmark` für strukturierte Benchmarks.
+  - `jetson-speculative-decoding` für EAGLE- oder Draft-Model-Optimierung.
+  - `jetson-package` für Jetson-geeignete Paket- und Containerwahl.
+  - `jetson-headless-mode` für GUI-Deaktivierung und Speicherreduktion.
+- Der Sub-Agent `jetson-perf-investigator` liegt unter `.github/agents/` und kann für mehrstufige Performance-Analysen delegiert werden.
+
 ## Sicherheit / Vorsicht
 - Keine Secrets, Keys oder Tokens committen (nur via `.env`).
 - Nicht ungefragt auf produktive Systeme deployen oder Container/Volumes löschen.

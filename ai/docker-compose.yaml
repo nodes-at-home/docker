@@ -164,9 +164,6 @@ services:
     ### https://www.jetson-ai-lab.com/models/
     ### https://docs.vllm.ai/en/stable/deployment/docker/
 
-    ### https://www.jetson-ai-lab.com/models/qwen3-6-35b-a3b/
-    ### https://huggingface.co/RedHatAI/Qwen3.6-35B-A3B-NVFP4
-
     ### https://huggingface.co/nvidia/Qwen3.6-27B-NVFP4
     ### https://www.jetson-ai-lab.com/models/qwen3-6-27b/
     ### https://catalog.ngc.nvidia.com/orgs/nvidia/-/containers/vllm/25.09-py3?_lr=1
@@ -234,9 +231,11 @@ services:
         runtime: nvidia
         << : *deploy_nvidia
 
+    ### https://www.jetson-ai-lab.com/models/qwen3-6-35b-a3b/
+    ### https://huggingface.co/RedHatAI/Qwen3.6-35B-A3B-NVFP4
+    ### https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4
     vllm_qwen36_35b_a3b:
         image: vllm/vllm-openai:v0.26.0-aarch64-ubuntu2404
-        # image: vllm/vllm-openai:v0.25.1-aarch64-ubuntu2404
         container_name: vllm_qwen36_35b_a3b
         restart: unless-stopped
         pull_policy: always
@@ -273,6 +272,8 @@ services:
             --reasoning-parser qwen3
             --enable-auto-tool-choice
             --tool-call-parser qwen3_xml
+            --default-chat-template-kwargs '{"enable_thinking": false, "add_generation_prompt": true, "continue_generation": false}'
+            --generation-config vllm
             --trust-remote-code
             --speculative-config '{"method": "mtp", "num_speculative_tokens": 3, "moe_backend": "triton"}'
             --quantization compressed-tensors

@@ -235,13 +235,16 @@ services:
     ### https://huggingface.co/RedHatAI/Qwen3.6-35B-A3B-NVFP4
     ### https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4
     vllm_qwen36_35b_a3b:
-        image: vllm/vllm-openai:v0.26.0-aarch64-ubuntu2404
+        image: vllm/vllm-openai:v0.25.1-aarch64-ubuntu2404
         container_name: vllm_qwen36_35b_a3b
         restart: unless-stopped
         pull_policy: always
         environment:
           - TZ=Europe/Berlin
           - HF_TOKEN=${HF_TOKEN}
+          # - VLLM_MARLIN_USE_ATOMIC_ADD=1
+          # - VLLM_NVFP4_GEMM_BACKEND=marlin
+          # - VLLM_ALLOW_LONG_MAX_MODEL_LEN=1
         labels:
           - "traefik.enable=false"
         volumes:
@@ -257,12 +260,14 @@ services:
             retries: 10
             start_period: 20m
         entrypoint: ["bash", "-c"]
+            # --generation-config vllm
+            # --language-model-only
         command:
           - >-
             exec vllm serve nvidia/Qwen3.6-35B-A3B-NVFP4
             --served-model-name qwen3.6
             --port 8000
-            --kv-cache-dtype fp8
+            --kv-cache-dtype auto
             --gpu-memory-utilization 0.4
             --max-model-len 262144
             --max-num-seqs 8
@@ -273,12 +278,10 @@ services:
             --enable-auto-tool-choice
             --tool-call-parser qwen3_xml
             --default-chat-template-kwargs '{"enable_thinking": false, "add_generation_prompt": true, "continue_generation": false}'
-            --generation-config vllm
-            --trust-remote-code
             --speculative-config '{"method": "mtp", "num_speculative_tokens": 3, "moe_backend": "triton"}'
+            --trust-remote-code
             --quantization compressed-tensors
             --dtype auto
-            --language-model-only
         runtime: nvidia
         << : *deploy_nvidia
 

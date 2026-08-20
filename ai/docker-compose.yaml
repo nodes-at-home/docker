@@ -327,5 +327,50 @@ services:
         runtime: nvidia
         << : *deploy_nvidia
 
+    litellm_router:
+        image: python:3.12-slim
+        container_name: litellm_router
+        restart: unless-stopped
+        working_dir: /app
+        environment:
+          - TZ=Europe/Berlin
+          - APP_HOST=0.0.0.0
+          - APP_PORT=4000
+          - LOG_LEVEL=${LOG_LEVEL:-INFO}
+          - LITELLM_CONFIG_PATH=/app/litellm_config.yaml
+          - REQUEST_TIMEOUT_SEC=${REQUEST_TIMEOUT_SEC:-180}
+          - ENABLE_RULE_ROUTER=${ENABLE_RULE_ROUTER:-true}
+          - ENABLE_LLM_ROUTER=${ENABLE_LLM_ROUTER:-false}
+          - ROUTER_CLASSIFIER_MAX_TOKENS=${ROUTER_CLASSIFIER_MAX_TOKENS:-8}
+          - ROUTER_CLASSIFIER_TEMPERATURE=${ROUTER_CLASSIFIER_TEMPERATURE:-0}
+          - GENERAL_MODEL=${GENERAL_MODEL:-openai/qwen3.6}
+          - GENERAL_API_BASE=${GENERAL_API_BASE:-http://thor:8000/v1}
+          - GENERAL_API_KEY=${GENERAL_API_KEY:-sk-local}
+          - CODER_MODEL=${CODER_MODEL:-openai/qwen2.5-coder}
+          - CODER_API_BASE=${CODER_API_BASE:-http://thor:8001/v1}
+          - CODER_API_KEY=${CODER_API_KEY:-sk-local}
+          - EXPOSED_GENERAL_NAME=${EXPOSED_GENERAL_NAME:-general}
+          - EXPOSED_CODER_NAME=${EXPOSED_CODER_NAME:-coder}
+          - ROUTER_KEYWORDS=${ROUTER_KEYWORDS:-}
+        labels:
+          - "traefik.enable=false"
+        extra_hosts:
+          - "thor:host-gateway"
+        volumes:
+          - ~/docker/docker/ai/litellm-gateway/router.py:/app/router.py:ro
+          - ~/docker/docker/ai/litellm-gateway/requirements.txt:/app/requirements.txt:ro
+          - ~/docker/docker/ai/litellm-gateway/litellm_config.yaml:/app/litellm_config.yaml:ro
+        command: >-
+          sh -c "pip install --no-cache-dir -r /app/requirements.txt &&
+          uvicorn router:app --host 0.0.0.0 --port 4000"
+        ports:
+          - 4000:4000
+        healthcheck:
+          test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/healthz', timeout=5)\""]
+          interval: 20s
+          timeout: 5s
+          retries: 5
+          start_period: 30s
+
     ### https://huggingface.co/nvidia/MiniMax-M3-NVFP4
     ### https://huggingface.co/s-batman/Ornith-1.0-35B-NVFP4-MTP-GGUF

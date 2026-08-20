@@ -1,0 +1,57 @@
+model_groups:
+  general:
+    model: "openai/qwen3.6"
+    api_base: "${GENERAL_API_BASE}"
+    api_key: "${GENERAL_API_KEY}"
+  coder:
+    model: "openai/qwen2.5-coder"
+    api_base: "${CODER_API_BASE}"
+    api_key: "${CODER_API_KEY}"
+
+fallbacks:
+  coder: "general"
+  general: "general"
+
+routing:
+  enable_llm_router: "${ENABLE_LLM_ROUTER}"
+  llm_classifier_prompt: |
+    You are a routing classifier.
+
+    Classify the user request into exactly one category.
+
+    GENERAL
+    CODING
+
+    Return only the category name.
+
+    User request:
+    {{prompt}}
+  keyword_list:
+    - python
+    - bash
+    - shell
+    - docker
+    - dockerfile
+    - kubernetes
+    - sql
+    - regex
+    - typescript
+    - javascript
+    - nodejs
+    - golang
+    - rust
+    - c++
+    - c#
+    - java
+    - debug
+    - bug
+    - refactor
+    - unit test
+    - integration test
+    - api design
+    - git
+    - github
+    - gitlab
+    - pull request
+    - cuda
+    - lua

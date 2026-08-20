@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -43,6 +44,7 @@ class RouterSettings:
     enable_rule_router: bool
     enable_llm_router: bool
     classifier_prompt: str
+    classifier_target: ModelTarget
     classifier_max_tokens: int
     classifier_temperature: float
     model_groups: dict[str, ModelTarget]
@@ -50,6 +52,7 @@ class RouterSettings:
     keyword_list: list[str]
     exposed_general_name: str
     exposed_coder_name: str
+    exposed_classifier_name: str
 
 
 class ChatCompletionRequest(BaseModel):
@@ -67,6 +70,16 @@ class ChatCompletionRequest(BaseModel):
 
 class RouterError(Exception):
     pass
+
+
+AUDIT_SENSITIVE_KEYS = {
+    "api_key",
+    "authorization",
+    "cookie",
+    "proxy_api_key",
+    "token",
+}
+AUDIT_LOCK = threading.Lock()
 
 
 COMPLETED_REQUESTS_TOTAL = Counter(
@@ -125,6 +138,10 @@ def load_config() -> RouterSettings:
     coder_model = os.getenv("CODER_MODEL", env_expand(groups["coder"]["model"]))
     coder_api_base = os.getenv("CODER_API_BASE", env_expand(groups["coder"]["api_base"]))
     coder_api_key = os.getenv("CODER_API_KEY", env_expand(groups["coder"]["api_key"]))
+    classifier = raw.get("classifier", {})
+    classifier_model = os.getenv("CLASSIFIER_MODEL", env_expand(classifier.get("model", "openai/qwen3-routing-classifier")))
+    classifier_api_base = os.getenv("CLASSIFIER_API_BASE", env_expand(classifier.get("api_base", "http://thor:8002/v1")))
+    classifier_api_key = os.getenv("CLASSIFIER_API_KEY", env_expand(classifier.get("api_key", "sk-local")))
 
     keyword_override = os.getenv("ROUTER_KEYWORDS", "").strip()
     default_keywords = raw.get("routing", {}).get("keyword_list", [])
@@ -151,6 +168,7 @@ def load_config() -> RouterSettings:
             False,
         ),
         classifier_prompt=llm_prompt,
+        classifier_target=ModelTarget(classifier_model, classifier_api_base, classifier_api_key),
         classifier_max_tokens=int(os.getenv("ROUTER_CLASSIFIER_MAX_TOKENS", "8")),
         classifier_temperature=float(os.getenv("ROUTER_CLASSIFIER_TEMPERATURE", "0")),
         model_groups={
@@ -161,12 +179,51 @@ def load_config() -> RouterSettings:
         keyword_list=keyword_list,
         exposed_general_name=os.getenv("EXPOSED_GENERAL_NAME", "general"),
         exposed_coder_name=os.getenv("EXPOSED_CODER_NAME", "coder"),
+        exposed_classifier_name=os.getenv("EXPOSED_CLASSIFIER_NAME", "classify"),
     )
 
 
 settings = load_config()
 logger = setup_logger(settings.log_level)
 app = FastAPI(title="LiteLLM Local Router", version="1.0.0")
+audit_enabled = parse_bool(os.getenv("LLM_AUDIT_LOG", "false"), False)
+audit_path = os.getenv("LLM_AUDIT_LOG_PATH", "/app/logs/llm-requests.jsonl")
+audit_max_chars = int(os.getenv("LLM_AUDIT_LOG_MAX_CHARS", "100000"))
+audit_max_bytes = int(os.getenv("LLM_AUDIT_LOG_MAX_BYTES", "52428800"))
+
+
+def audit_safe(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: "[REDACTED]" if key.lower() in AUDIT_SENSITIVE_KEYS else audit_safe(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [audit_safe(item) for item in value]
+    if isinstance(value, str) and len(value) > audit_max_chars:
+        return value[:audit_max_chars] + "...[truncated]"
+    return value
+
+
+def audit_event(event: str, **fields: Any) -> None:
+    if not audit_enabled:
+        return
+
+    record = audit_safe({
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "event": event,
+        **fields,
+    })
+    try:
+        line = json.dumps(record, ensure_ascii=False, separators=(",", ":"))
+        with AUDIT_LOCK:
+            os.makedirs(os.path.dirname(audit_path) or ".", exist_ok=True)
+            if os.path.exists(audit_path) and os.path.getsize(audit_path) + len(line.encode("utf-8")) + 1 > audit_max_bytes:
+                os.replace(audit_path, f"{audit_path}.1")
+            with open(audit_path, "a", encoding="utf-8") as audit_file:
+                audit_file.write(line + "\n")
+    except Exception as exc:
+        logger.warning(json.dumps({"event": "audit_log_error", "error": str(exc)}))
 
 
 def log_event(event: str, **fields: Any) -> None:
@@ -202,6 +259,28 @@ def extract_prompt_text(body: ChatCompletionRequest) -> str:
     return "\n".join(chunks)
 
 
+def explicit_route(model: str | None) -> tuple[str | None, str]:
+    if not model:
+        return None, "model_not_specified"
+
+    requested = model.strip().lower()
+    aliases = {
+        settings.exposed_general_name.lower(): "general",
+        settings.exposed_coder_name.lower(): "coder",
+        settings.model_groups["general"].model.lower(): "general",
+        settings.model_groups["coder"].model.lower(): "coder",
+    }
+    for group, target in settings.model_groups.items():
+        aliases[target.model.split("/", 1)[-1].lower()] = group
+
+    group = aliases.get(requested)
+    if group is None:
+        return None, f"model_unknown:{model}"
+
+    ROUTING_DECISIONS_TOTAL.labels(strategy="explicit", decision=group).inc()
+    return group, f"explicit_model:{model}"
+
+
 def rule_route(prompt: str) -> tuple[str | None, str]:
     if not settings.enable_rule_router:
         return None, "rule_disabled"
@@ -218,7 +297,7 @@ def rule_route(prompt: str) -> tuple[str | None, str]:
 
 async def llm_classify(prompt: str) -> tuple[str, str]:
     classifier_text = settings.classifier_prompt.replace("{{prompt}}", prompt)
-    target = settings.model_groups["general"]
+    target = settings.classifier_target
 
     response = await acompletion(
         model=target.model,
@@ -226,11 +305,12 @@ async def llm_classify(prompt: str) -> tuple[str, str]:
         api_key=target.api_key,
         timeout=settings.request_timeout_sec,
         messages=[
-            {"role": "system", "content": "You are a strict classifier."},
+            {"role": "system", "content": "Choose one label and return only it. GENERAL: normal knowledge or explanation, translation, summary, or everyday question. CODING: write code, debug Docker, configure a server, or implement software. Examples: why is the sky blue = GENERAL; write Python = CODING; configure an OpenAI endpoint = CODING."},
             {"role": "user", "content": classifier_text},
         ],
         max_tokens=settings.classifier_max_tokens,
         temperature=settings.classifier_temperature,
+        chat_template_kwargs={"enable_thinking": False},
     )
 
     text = ""
@@ -248,7 +328,19 @@ async def llm_classify(prompt: str) -> tuple[str, str]:
     return "general", "llm_classifier:GENERAL"
 
 
-async def pick_route(prompt: str) -> tuple[str, str]:
+async def pick_route(prompt: str, requested_model: str | None) -> tuple[str, str]:
+    if requested_model and requested_model.strip().lower() == settings.exposed_classifier_name.lower():
+        try:
+            return await llm_classify(prompt)
+        except Exception as exc:
+            log_event("llm_router_error", error=str(exc))
+            ROUTING_DECISIONS_TOTAL.labels(strategy="llm", decision="general").inc()
+            return "general", "llm_router_error:fallback_general"
+
+    explicit_decision, explicit_reason = explicit_route(requested_model)
+    if explicit_decision is not None:
+        return explicit_decision, explicit_reason
+
     rule_decision, reason = rule_route(prompt)
     if rule_decision == "coder":
         return "coder", reason
@@ -270,7 +362,8 @@ def normalize_payload(payload: dict[str, Any]) -> dict[str, Any]:
     extra_body = merged.pop("extra_body", None)
     if isinstance(extra_body, dict):
         merged.update(extra_body)
-    merged.pop("model", None)
+    for provider_field in ("model", "api_base", "api_key", "timeout"):
+        merged.pop(provider_field, None)
     return merged
 
 
@@ -321,9 +414,13 @@ async def healthz() -> dict[str, str]:
 @app.get("/readyz")
 async def readyz() -> dict[str, Any]:
     upstreams: dict[str, str] = {}
+    targets = {
+        **settings.model_groups,
+        "classifier": settings.classifier_target,
+    }
 
     async with httpx.AsyncClient(timeout=5.0) as client:
-        for group, target in settings.model_groups.items():
+        for group, target in targets.items():
             expected_model = target.model.split("/", 1)[-1]
             models_url = f"{target.api_base.rstrip('/')}/models"
 
@@ -372,6 +469,11 @@ async def v1_models() -> dict[str, Any]:
                 "object": "model",
                 "owned_by": "local",
             },
+            {
+                "id": settings.exposed_classifier_name,
+                "object": "model",
+                "owned_by": "local",
+            },
         ],
     }
 
@@ -392,8 +494,16 @@ async def chat_completions(request: Request) -> Any:
         if not prompt_text.strip():
             raise HTTPException(status_code=400, detail="Request must include non-empty messages or prompt")
 
-        selected_group, routing_reason = await pick_route(prompt_text)
+        selected_group, routing_reason = await pick_route(prompt_text, body.model)
         payload = normalize_payload(body.model_dump(exclude_none=True))
+        audit_event(
+            "request_start",
+            request_id=request_id,
+            requested_model=body.model,
+            model_group=selected_group,
+            routing_reason=routing_reason,
+            request=body_raw,
+        )
 
         upstream_response, used_group, fallback_reason = await invoke_with_fallback(selected_group, payload)
         selected_group = used_group
@@ -404,6 +514,8 @@ async def chat_completions(request: Request) -> Any:
         duration_sec = time.perf_counter() - started
 
         if payload.get("stream", False):
+            stream_chunks: list[dict[str, Any]] = []
+
             async def event_generator() -> Any:
                 nonlocal status_code
                 try:
@@ -414,6 +526,7 @@ async def chat_completions(request: Request) -> Any:
                             chunk_dict = chunk
                         else:
                             chunk_dict = {"object": "error", "message": "Unknown stream chunk"}
+                        stream_chunks.append(chunk_dict)
                         yield f"data: {json.dumps(chunk_dict, ensure_ascii=False)}\n\n"
                     yield "data: [DONE]\n\n"
                     status_code = "200"
@@ -441,6 +554,15 @@ async def chat_completions(request: Request) -> Any:
                         routing_reason=routing_reason,
                         duration_ms=int((time.perf_counter() - started) * 1000),
                     )
+                    audit_event(
+                        "request_complete",
+                        request_id=request_id,
+                        model_group=selected_group,
+                        routing_reason=routing_reason,
+                        duration_ms=int((time.perf_counter() - started) * 1000),
+                        status_code=int(status_code),
+                        response=stream_chunks,
+                    )
 
             return StreamingResponse(event_generator(), media_type="text/event-stream")
 
@@ -458,6 +580,15 @@ async def chat_completions(request: Request) -> Any:
             routing_reason=routing_reason,
             duration_ms=int(duration_sec * 1000),
         )
+        audit_event(
+            "request_complete",
+            request_id=request_id,
+            model_group=selected_group,
+            routing_reason=routing_reason,
+            duration_ms=int(duration_sec * 1000),
+            status_code=200,
+            response=response_dict,
+        )
 
         return JSONResponse(content=response_dict, status_code=200)
 
@@ -468,6 +599,7 @@ async def chat_completions(request: Request) -> Any:
             max(time.perf_counter() - started, 0.0)
         )
         log_event("request_validation_error", request_id=request_id, error=str(exc))
+        audit_event("request_failed", request_id=request_id, status_code=400, error=str(exc))
         raise HTTPException(status_code=400, detail="Invalid request body")
 
     except HTTPException:
@@ -485,6 +617,15 @@ async def chat_completions(request: Request) -> Any:
             model_group=selected_group,
             routing_reason=routing_reason,
             duration_ms=int((time.perf_counter() - started) * 1000),
+            error=str(exc),
+        )
+        audit_event(
+            "request_failed",
+            request_id=request_id,
+            model_group=selected_group,
+            routing_reason=routing_reason,
+            duration_ms=int((time.perf_counter() - started) * 1000),
+            status_code=502,
             error=str(exc),
         )
         return JSONResponse(

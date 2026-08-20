@@ -327,6 +327,49 @@ services:
         runtime: nvidia
         << : *deploy_nvidia
 
+    ### Dedicated routing classifier
+    ### https://huggingface.co/kaitchup/Qwen3-1.7B-NVFP4
+    vllm_routing_classifier:
+        image: vllm/vllm-openai:v0.27.1-aarch64-ubuntu2404
+        container_name: vllm_routing_classifier
+        restart: unless-stopped
+        pull_policy: always
+        environment:
+          - TZ=Europe/Berlin
+          - HF_TOKEN=${HF_TOKEN}
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/vllm/models:/root/.cache/huggingface
+          - ~/docker/vllm/cache/routing_classifier:/root/.cache/vllm
+        shm_size: '8gb'
+        ports:
+          - 8002:8002
+        healthcheck:
+            test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8002/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
+            interval: 20s
+            timeout: 5s
+            retries: 10
+            start_period: 10m
+        entrypoint: ["bash", "-c"]
+        command:
+          - >-
+            exec vllm serve kaitchup/Qwen3-1.7B-NVFP4
+            --served-model-name qwen3-routing-classifier
+            --port 8002
+            --gpu-memory-utilization 0.08
+            --max-model-len 8192
+            --max-num-seqs 2
+            --max-num-batched-tokens 2048
+            --enable-prefix-caching
+            --enable-chunked-prefill
+            --default-chat-template-kwargs '{"enable_thinking": false, "add_generation_prompt": true, "continue_generation": false}'
+            --trust-remote-code
+            --quantization compressed-tensors
+            --dtype auto
+        runtime: nvidia
+        << : *deploy_nvidia
+
     litellm_router:
         image: python:3.12-slim
         container_name: litellm_router
@@ -340,9 +383,16 @@ services:
           - LITELLM_CONFIG_PATH=/app/litellm_config.yaml
           - REQUEST_TIMEOUT_SEC=${REQUEST_TIMEOUT_SEC:-180}
           - ENABLE_RULE_ROUTER=${ENABLE_RULE_ROUTER:-true}
-          - ENABLE_LLM_ROUTER=${ENABLE_LLM_ROUTER:-false}
+          - ENABLE_LLM_ROUTER=${ENABLE_LLM_ROUTER:-true}
           - ROUTER_CLASSIFIER_MAX_TOKENS=${ROUTER_CLASSIFIER_MAX_TOKENS:-8}
           - ROUTER_CLASSIFIER_TEMPERATURE=${ROUTER_CLASSIFIER_TEMPERATURE:-0}
+          - CLASSIFIER_MODEL=${CLASSIFIER_MODEL:-openai/qwen3-routing-classifier}
+          - CLASSIFIER_API_BASE=${CLASSIFIER_API_BASE:-http://thor:8002/v1}
+          - CLASSIFIER_API_KEY=${CLASSIFIER_API_KEY:-sk-local}
+          - LLM_AUDIT_LOG=${LLM_AUDIT_LOG:-true}
+          - LLM_AUDIT_LOG_PATH=${LLM_AUDIT_LOG_PATH:-/app/logs/llm-requests.jsonl}
+          - LLM_AUDIT_LOG_MAX_CHARS=${LLM_AUDIT_LOG_MAX_CHARS:-100000}
+          - LLM_AUDIT_LOG_MAX_BYTES=${LLM_AUDIT_LOG_MAX_BYTES:-52428800}
           - GENERAL_MODEL=${GENERAL_MODEL:-openai/qwen3.6}
           - GENERAL_API_BASE=${GENERAL_API_BASE:-http://thor:8000/v1}
           - GENERAL_API_KEY=${GENERAL_API_KEY:-sk-local}
@@ -351,6 +401,7 @@ services:
           - CODER_API_KEY=${CODER_API_KEY:-sk-local}
           - EXPOSED_GENERAL_NAME=${EXPOSED_GENERAL_NAME:-general}
           - EXPOSED_CODER_NAME=${EXPOSED_CODER_NAME:-coder}
+          - EXPOSED_CLASSIFIER_NAME=${EXPOSED_CLASSIFIER_NAME:-classify}
           - ROUTER_KEYWORDS=${ROUTER_KEYWORDS:-}
         labels:
           - "traefik.enable=false"
@@ -360,6 +411,7 @@ services:
           - ~/docker/docker/ai/litellm-gateway/router.py:/app/router.py:ro
           - ~/docker/docker/ai/litellm-gateway/requirements.txt:/app/requirements.txt:ro
           - ~/docker/docker/ai/litellm-gateway/litellm_config.yaml:/app/litellm_config.yaml:ro
+          - ~/docker/vllm/litellm-gateway/logs:/app/logs
         command: >-
           sh -c "pip install --no-cache-dir -r /app/requirements.txt &&
           uvicorn router:app --host 0.0.0.0 --port 4000"

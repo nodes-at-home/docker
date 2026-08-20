@@ -4,6 +4,7 @@ This project provides a local OpenAI-compatible gateway with automatic routing f
 
 - `general` -> `qwen3.6` / Qwen3.6-35B-A3B-NVFP4 (`http://thor:8000/v1`)
 - `coder` -> `qwen2.5-coder` / Qwen2.5-Coder-14B-Instruct-NVFP4 (`http://thor:8001/v1`)
+- `classifier` -> `qwen3-routing-classifier` / kaitchup/Qwen3-1.7B-NVFP4 (`http://thor:8002/v1`)
 
 Architecture:
 
@@ -15,10 +16,14 @@ Open-WebUI -> LiteLLM Router (FastAPI + LiteLLM) -> local vLLM model endpoints
 - Model groups: `general`, `coder`
 - Rule-based routing by coding keywords
 - Optional LLM classifier routing (`ENABLE_LLM_ROUTER=true`)
+- Explicit model routing for `general`, `coder`, and their upstream aliases
+- `classify` mode to force model-based routing from Hermes or another client
+- Dedicated Qwen3 1.7B NVFP4 classifier for model-based routing
 - Fallback chain:
   - `coder -> general`
   - `general -> general`
 - Structured JSON logs
+- Full request/response audit log in JSONL format (`/app/logs/llm-requests.jsonl`)
 - Prometheus metrics endpoint: `GET /metrics`
 - Health checks: `GET /healthz`, `GET /readyz`
 
@@ -73,6 +78,39 @@ If another client should call through this gateway, use it exactly like an OpenA
 
 - `POST /v1/chat/completions`
 - `GET /v1/models`
+
+Routing precedence is:
+
+1. Explicit `model` value `classify` forces the LLM classifier
+2. Explicit `model` value (`general`, `coder`, `qwen3.6`, or `qwen2.5-coder`)
+3. Coding keyword match when `ENABLE_RULE_ROUTER=true`
+4. LLM classifier when `ENABLE_LLM_ROUTER=true`
+5. General model as the default
+
+In Hermes, select the OpenAI-compatible model `classify` when you want the
+router to decide between the general and coder backends. Select `general` or
+`coder` to force a direct mode.
+
+The configured fallback `coder -> general` is used only when the selected coder
+upstream request fails. It does not override explicit model selection.
+
+## LLM audit log
+
+The audit log is enabled in the main Compose service for local testing. Each
+request produces JSONL records for the request start and completion, including
+the routing decision, upstream model, response, status, and duration. Streaming
+responses are stored as their collected chunks after completion.
+
+The host log directory is `~/docker/vllm/litellm-gateway/logs`. Contents are truncated
+per string at `LLM_AUDIT_LOG_MAX_CHARS`, rotated at `LLM_AUDIT_LOG_MAX_BYTES`, and
+sensitive keys such as API keys and authorization values are redacted. Disable it with `LLM_AUDIT_LOG=false` when
+prompts and responses should not be persisted.
+
+Inspect recent records with:
+
+```bash
+jq . ~/docker/litellm-router/logs/llm-requests.jsonl
+```
 
 ## Prometheus Integration
 

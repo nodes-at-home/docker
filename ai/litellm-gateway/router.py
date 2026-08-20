@@ -11,6 +11,7 @@ from typing import Any
 
 import yaml
 import httpx
+import litellm
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 from litellm import acompletion
@@ -78,6 +79,15 @@ AUDIT_SENSITIVE_KEYS = {
     "cookie",
     "proxy_api_key",
     "token",
+}
+UPSTREAM_DROPPED_FIELDS = {
+    "api_base",
+    "api_key",
+    "api_version",
+    "base_url",
+    "model",
+    "reasoning_effort",
+    "timeout",
 }
 AUDIT_LOCK = threading.Lock()
 
@@ -184,6 +194,7 @@ def load_config() -> RouterSettings:
 
 
 settings = load_config()
+litellm.drop_params = True
 logger = setup_logger(settings.log_level)
 app = FastAPI(title="LiteLLM Local Router", version="1.0.0")
 audit_enabled = parse_bool(os.getenv("LLM_AUDIT_LOG", "false"), False)
@@ -362,7 +373,7 @@ def normalize_payload(payload: dict[str, Any]) -> dict[str, Any]:
     extra_body = merged.pop("extra_body", None)
     if isinstance(extra_body, dict):
         merged.update(extra_body)
-    for provider_field in ("model", "api_base", "api_key", "timeout"):
+    for provider_field in UPSTREAM_DROPPED_FIELDS:
         merged.pop(provider_field, None)
     return merged
 

@@ -418,6 +418,58 @@ services:
         runtime: nvidia
         << : *deploy_nvidia
 
+    ### NVIDIA Nemotron 3.5 Lightning 30B-A3B with DSpark speculation
+    ### https://www.jetson-ai-lab.com/models/nemotron3-5-lightning/
+    ### https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+    vllm_nemotron35:
+        image: vllm/vllm-openai:v0.27.1-aarch64-ubuntu2404
+        container_name: vllm_nemotron35
+        restart: unless-stopped
+        pull_policy: always
+        environment:
+          - TZ=Europe/Berlin
+          - HF_TOKEN=${HF_TOKEN}
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/vllm/models:/root/.cache/huggingface
+          - ~/docker/vllm/cache/nemotron35:/root/.cache/vllm
+        shm_size: '16gb'
+        ports:
+          - 8004:8004
+        healthcheck:
+            test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8004/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
+            interval: 20s
+            timeout: 5s
+            retries: 10
+            start_period: 20m
+        entrypoint: ["bash", "-c"]
+        command:
+          - >-
+            exec vllm serve nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+            --served-model-name nemotron35
+            --port 8004
+            --reasoning-parser nemotron_v3
+            --enable-auto-tool-choice
+            --tool-call-parser qwen3_coder
+            --max-model-len 128000
+            --gpu-memory-utilization 0.5
+            --kv-cache-dtype fp8
+            --max-num-seqs 6
+            --max-num-batched-tokens 16384
+            --enable-prefix-caching
+            --enable-chunked-prefill
+            --speculative-config '{"method": "dspark", "model": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark", "num_speculative_tokens": 5}'
+            --mamba-backend flashinfer
+            --mamba-ssm-cache-dtype float16
+            --enable-mamba-cache-stochastic-rounding
+            --mamba-cache-philox-rounds 5
+            --mamba-cache-mode align
+            --trust-remote-code
+            --dtype auto
+        runtime: nvidia
+        << : *deploy_nvidia
+
     litellm_router:
         image: python:3.12-slim
         container_name: litellm_router

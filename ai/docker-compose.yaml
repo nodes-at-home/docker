@@ -227,7 +227,6 @@ services:
             --speculative-config '{"method": "mtp", "num_speculative_tokens": 3, "moe_backend": "triton"}'
             --quantization compressed-tensors
             --dtype auto
-            --language-model-only
         runtime: nvidia
         << : *deploy_nvidia
 
@@ -364,6 +363,55 @@ services:
             --enable-prefix-caching
             --enable-chunked-prefill
             --default-chat-template-kwargs '{"enable_thinking": false, "add_generation_prompt": true, "continue_generation": false}'
+            --trust-remote-code
+            --quantization compressed-tensors
+            --dtype auto
+        runtime: nvidia
+        << : *deploy_nvidia
+
+    ### Qwen3.8 dense vision-language model with Unsloth Dynamic NVFP4
+    ### Requires vLLM >= 0.25.0 and NVIDIA Blackwell (Jetson AGX Thor)
+    ### https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4
+    ### https://unsloth.ai/docs/models/qwen3.8
+    vllm_qwen38_27b:
+        image: vllm/vllm-openai:v0.27.1-aarch64-ubuntu2404
+        container_name: vllm_qwen38_27b
+        restart: unless-stopped
+        pull_policy: always
+        environment:
+          - TZ=Europe/Berlin
+          - HF_TOKEN=${HF_TOKEN}
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/vllm/models:/root/.cache/huggingface
+          - ~/docker/vllm/cache/qwen38_27b:/root/.cache/vllm
+        shm_size: '16gb'
+        ports:
+          - 8003:8003
+        healthcheck:
+            test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8003/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
+            interval: 20s
+            timeout: 5s
+            retries: 10
+            start_period: 20m
+        entrypoint: ["bash", "-c"]
+        command:
+          - >-
+            exec vllm serve unsloth/Qwen3.8-27B-NVFP4
+            --served-model-name qwen3.8
+            --port 8003
+            --kv-cache-dtype fp8
+            --gpu-memory-utilization 0.7
+            --max-model-len 262144
+            --max-num-seqs 6
+            --max-num-batched-tokens 16384
+            --enable-prefix-caching
+            --enable-chunked-prefill
+            --reasoning-parser qwen3
+            --enable-auto-tool-choice
+            --tool-call-parser qwen3_xml
+            --speculative-config '{"method": "mtp", "num_speculative_tokens": 3}'
             --trust-remote-code
             --quantization compressed-tensors
             --dtype auto

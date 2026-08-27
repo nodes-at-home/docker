@@ -402,7 +402,7 @@ services:
             --served-model-name qwen3.8
             --port 8003
             --kv-cache-dtype fp8
-            --gpu-memory-utilization 0.7
+            --gpu-memory-utilization 0.5
             --max-model-len 262144
             --max-num-seqs 6
             --max-num-batched-tokens 16384
@@ -453,7 +453,7 @@ services:
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
             --max-model-len 128000
-            --gpu-memory-utilization 0.5
+            --gpu-memory-utilization 0.4
             --kv-cache-dtype fp8
             --max-num-seqs 6
             --max-num-batched-tokens 16384

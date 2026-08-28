@@ -16,65 +16,6 @@ x-deploy_nvidia: &deploy_nvidia
                       - utility
                       - compute
 
-### Wyoming Piper Containers
-### https://github.com/dusty-nv/jetson-containers/tree/master/packages/smart-home/wyoming/wyoming-piper
-###
-x-piper-jetson: &piper_jetson
-    image: dustynv/wyoming-piper:master-r36.2.0
-
-x-piper-wsl2: &piper_wsl2
-    image: wyoming-piper-gpu
-    build:
-      context: ./wyoming-piper-gpu
-
-x-piper: &piper_container
-    container_name: piper
-    restart: unless-stopped
-    environment:
-      - TZ=Europe/Berlin
-      - PIPER_VOICE=de_DE-thorsten-high
-    labels:
-      - "traefik.enable=false"
-    volumes:
-      - ~/docker/piper/data:/data
-    ports:
-      - "10201:10200"
-    runtime: nvidia
-    << : *deploy_nvidia
-
-x-whisper-jetson: &whisper_jetson
-    image: dustynv/wyoming-whisper:latest-r36.2.0
-    volumes:
-      - ~/docker/whisper/models:/share/whisper
-      - ~/docker/whisper/data:/data
-
-# https://community.home-assistant.io/t/whisper-on-gpu/903694
-x-whisper-wsl2: &whisper_wsl2
-    image: lscr.io/linuxserver/faster-whisper:gpu
-    volumes:
-      - ~/docker/whisper/data:/config
-      - ~/docker/whisper/run:/etc/s6-overlay/s6-rc.d/svc-whisper/run
-
-x-whisper: &whisper_container
-    container_name: whisper
-    restart: unless-stopped
-    environment:
-      - TZ=Europe/Berlin
-      - PUID=1000
-      - PGID=1000
-      - WHISPER_MODEL=large-v3
-      - WHISPER_LANG=de
-      - WHISPER_BEAM=20
-      - LOG_LEVEL=DEBUG
-    labels:
-      - "traefik.enable=false"
-    ports:
-      - 10300:10300
-      - 10300:10300/tcp
-    # network_mode: host
-    runtime: nvidia
-    << : *deploy_nvidia
-
 services:
 
     ollama-wsl2:
@@ -144,23 +85,6 @@ services:
         # runtime: nvidia
         # << : *deploy_nvidia
 
-    whisper-jetson:
-        container_name: whisper-jetson
-        << : [*whisper_jetson, *whisper_container]
-
-    whisper-wsl2:
-        container_name: whisper-wsl2
-        << : [*whisper_wsl2, *whisper_container]
-
-    piper-jetson:
-        container_name: piper-jetson
-        << : [*piper_jetson, *piper_container]
-
-    piper-wsl2:
-        container_name: piper-wsl2
-        << : [*piper_wsl2, *piper_container]
-
-    ### vLLM OpenAI-compatible server
     ### https://www.jetson-ai-lab.com/models/
     ### https://docs.vllm.ai/en/stable/deployment/docker/
 

@@ -411,30 +411,37 @@ services:
           - ROUTER_CLASSIFIER_MAX_TOKENS=${ROUTER_CLASSIFIER_MAX_TOKENS:-8}
           - ROUTER_CLASSIFIER_TEMPERATURE=${ROUTER_CLASSIFIER_TEMPERATURE:-0}
           - CLASSIFIER_MODEL=${CLASSIFIER_MODEL:-openai/qwen3-routing-classifier}
-          - CLASSIFIER_API_BASE=${CLASSIFIER_API_BASE:-http://thor:8002/v1}
+          - CLASSIFIER_API_BASE=${CLASSIFIER_API_BASE:-http://vllm_routing_classifier:8002/v1}
           - CLASSIFIER_API_KEY=${CLASSIFIER_API_KEY:-sk-local}
           - LLM_AUDIT_LOG=${LLM_AUDIT_LOG:-true}
           - LLM_AUDIT_LOG_PATH=${LLM_AUDIT_LOG_PATH:-/app/logs/llm-requests.jsonl}
           - LLM_AUDIT_LOG_MAX_CHARS=${LLM_AUDIT_LOG_MAX_CHARS:-100000}
           - LLM_AUDIT_LOG_MAX_BYTES=${LLM_AUDIT_LOG_MAX_BYTES:-52428800}
           - GENERAL_MODEL=${GENERAL_MODEL:-openai/qwen3.6}
-          - GENERAL_API_BASE=${GENERAL_API_BASE:-http://thor:8000/v1}
+          - GENERAL_API_BASE=${GENERAL_API_BASE:-http://vllm_qwen36_27b:8000/v1}
           - GENERAL_API_KEY=${GENERAL_API_KEY:-sk-local}
           - CODER_MODEL=${CODER_MODEL:-openai/qwen2.5-coder}
-          - CODER_API_BASE=${CODER_API_BASE:-http://thor:8001/v1}
+          - CODER_API_BASE=${CODER_API_BASE:-http://vllm_qwen25_14b_coder:8001/v1}
           - CODER_API_KEY=${CODER_API_KEY:-sk-local}
+          - QWEN38_MODEL=${QWEN38_MODEL:-openai/qwen3.8}
+          - QWEN38_API_BASE=${QWEN38_API_BASE:-http://vllm_qwen38_27b:8003/v1}
+          - QWEN38_API_KEY=${QWEN38_API_KEY:-sk-local}
+          - NEMOTRON35_MODEL=${NEMOTRON35_MODEL:-openai/nemotron35}
+          - NEMOTRON35_API_BASE=${NEMOTRON35_API_BASE:-http://vllm_nemotron35:8004/v1}
+          - NEMOTRON35_API_KEY=${NEMOTRON35_API_KEY:-sk-local}
           - EXPOSED_GENERAL_NAME=${EXPOSED_GENERAL_NAME:-general}
           - EXPOSED_CODER_NAME=${EXPOSED_CODER_NAME:-coder}
           - EXPOSED_CLASSIFIER_NAME=${EXPOSED_CLASSIFIER_NAME:-classify}
+          - EXPOSE_GENERAL=${EXPOSE_GENERAL:-false}
+          - EXPOSE_CODER=${EXPOSE_CODER:-false}
+          - EXPOSE_CLASSIFIER=${EXPOSE_CLASSIFIER:-false}
           - ROUTER_KEYWORDS=${ROUTER_KEYWORDS:-}
         labels:
           - "traefik.enable=false"
-        extra_hosts:
-          - "thor:host-gateway"
         volumes:
-          - ~/docker/docker/ai/litellm-gateway/router.py:/app/router.py:ro
-          - ~/docker/docker/ai/litellm-gateway/requirements.txt:/app/requirements.txt:ro
-          - ~/docker/docker/ai/litellm-gateway/litellm_config.yaml:/app/litellm_config.yaml:ro
+          - ~/docker/docker/vllm/litellm-gateway/router.py:/app/router.py:ro
+          - ~/docker/docker/vllm/litellm-gateway/requirements.txt:/app/requirements.txt:ro
+          - ~/docker/docker/vllm/litellm-gateway/litellm_config.yaml:/app/litellm_config.yaml:ro
           - ~/docker/vllm/litellm-gateway/logs:/app/logs
         command: >-
           sh -c "pip install --no-cache-dir -r /app/requirements.txt &&

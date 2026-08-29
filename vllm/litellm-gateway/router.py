@@ -54,6 +54,9 @@ class RouterSettings:
     exposed_general_name: str
     exposed_coder_name: str
     exposed_classifier_name: str
+    expose_general: bool
+    expose_coder: bool
+    expose_classifier: bool
 
 
 class ChatCompletionRequest(BaseModel):
@@ -141,13 +144,14 @@ def load_config() -> RouterSettings:
     if "general" not in groups or "coder" not in groups:
         raise RuntimeError("litellm_config.yaml must define model_groups.general and model_groups.coder")
 
-    general_model = os.getenv("GENERAL_MODEL", env_expand(groups["general"]["model"]))
-    general_api_base = os.getenv("GENERAL_API_BASE", env_expand(groups["general"]["api_base"]))
-    general_api_key = os.getenv("GENERAL_API_KEY", env_expand(groups["general"]["api_key"]))
-
-    coder_model = os.getenv("CODER_MODEL", env_expand(groups["coder"]["model"]))
-    coder_api_base = os.getenv("CODER_API_BASE", env_expand(groups["coder"]["api_base"]))
-    coder_api_key = os.getenv("CODER_API_KEY", env_expand(groups["coder"]["api_key"]))
+    model_groups = {
+        group: ModelTarget(
+            os.getenv(f"{group.upper().replace('.', '')}_MODEL", env_expand(target["model"])),
+            os.getenv(f"{group.upper().replace('.', '')}_API_BASE", env_expand(target["api_base"])),
+            os.getenv(f"{group.upper().replace('.', '')}_API_KEY", env_expand(target["api_key"])),
+        )
+        for group, target in groups.items()
+    }
     classifier = raw.get("classifier", {})
     classifier_model = os.getenv("CLASSIFIER_MODEL", env_expand(classifier.get("model", "openai/qwen3-routing-classifier")))
     classifier_api_base = os.getenv("CLASSIFIER_API_BASE", env_expand(classifier.get("api_base", "http://thor:8002/v1")))
@@ -181,15 +185,15 @@ def load_config() -> RouterSettings:
         classifier_target=ModelTarget(classifier_model, classifier_api_base, classifier_api_key),
         classifier_max_tokens=int(os.getenv("ROUTER_CLASSIFIER_MAX_TOKENS", "8")),
         classifier_temperature=float(os.getenv("ROUTER_CLASSIFIER_TEMPERATURE", "0")),
-        model_groups={
-            "general": ModelTarget(general_model, general_api_base, general_api_key),
-            "coder": ModelTarget(coder_model, coder_api_base, coder_api_key),
-        },
+        model_groups=model_groups,
         fallbacks={str(k): str(v) for k, v in fallbacks.items()},
         keyword_list=keyword_list,
         exposed_general_name=os.getenv("EXPOSED_GENERAL_NAME", "general"),
         exposed_coder_name=os.getenv("EXPOSED_CODER_NAME", "coder"),
         exposed_classifier_name=os.getenv("EXPOSED_CLASSIFIER_NAME", "classify"),
+        expose_general=parse_bool(os.getenv("EXPOSE_GENERAL", "true"), True),
+        expose_coder=parse_bool(os.getenv("EXPOSE_CODER", "true"), True),
+        expose_classifier=parse_bool(os.getenv("EXPOSE_CLASSIFIER", "true"), True),
     )
 
 
@@ -275,14 +279,15 @@ def explicit_route(model: str | None) -> tuple[str | None, str]:
         return None, "model_not_specified"
 
     requested = model.strip().lower()
-    aliases = {
-        settings.exposed_general_name.lower(): "general",
-        settings.exposed_coder_name.lower(): "coder",
-        settings.model_groups["general"].model.lower(): "general",
-        settings.model_groups["coder"].model.lower(): "coder",
-    }
+    aliases: dict[str, str] = {}
+    if settings.expose_general:
+        aliases[settings.exposed_general_name.lower()] = "general"
+    if settings.expose_coder:
+        aliases[settings.exposed_coder_name.lower()] = "coder"
     for group, target in settings.model_groups.items():
-        aliases[target.model.split("/", 1)[-1].lower()] = group
+        if group not in {"general", "coder"} or getattr(settings, f"expose_{group}", True):
+            aliases[target.model.lower()] = group
+            aliases[target.model.split("/", 1)[-1].lower()] = group
 
     group = aliases.get(requested)
     if group is None:
@@ -340,7 +345,11 @@ async def llm_classify(prompt: str) -> tuple[str, str]:
 
 
 async def pick_route(prompt: str, requested_model: str | None) -> tuple[str, str]:
-    if requested_model and requested_model.strip().lower() == settings.exposed_classifier_name.lower():
+    if (
+        settings.expose_classifier
+        and requested_model
+        and requested_model.strip().lower() == settings.exposed_classifier_name.lower()
+    ):
         try:
             return await llm_classify(prompt)
         except Exception as exc:
@@ -467,24 +476,26 @@ async def metrics() -> PlainTextResponse:
 
 @app.get("/v1/models")
 async def v1_models() -> dict[str, Any]:
+    routed_models = []
+    if settings.expose_general:
+        routed_models.append({"id": settings.exposed_general_name, "object": "model", "owned_by": "local"})
+    if settings.expose_coder:
+        routed_models.append({"id": settings.exposed_coder_name, "object": "model", "owned_by": "local"})
+    direct_models = [
+        {"id": group, "object": "model", "owned_by": "local"}
+        for group in settings.model_groups
+        if group not in {"general", "coder"}
+    ]
     return {
         "object": "list",
         "data": [
-            {
-                "id": settings.exposed_general_name,
-                "object": "model",
-                "owned_by": "local",
-            },
-            {
-                "id": settings.exposed_coder_name,
-                "object": "model",
-                "owned_by": "local",
-            },
-            {
-                "id": settings.exposed_classifier_name,
-                "object": "model",
-                "owned_by": "local",
-            },
+            *routed_models,
+            *direct_models,
+            *(
+                [{"id": settings.exposed_classifier_name, "object": "model", "owned_by": "local"}]
+                if settings.expose_classifier
+                else []
+            ),
         ],
     }
 

@@ -4,6 +4,8 @@ This project provides a local OpenAI-compatible gateway with automatic routing f
 
 - `general` -> `qwen3.6` / Qwen3.6-35B-A3B-NVFP4 (`http://thor:8000/v1`)
 - `coder` -> `qwen2.5-coder` / Qwen2.5-Coder-14B-Instruct-NVFP4 (`http://thor:8001/v1`)
+- `qwen3.8` -> Qwen3.8-27B-NVFP4 (`http://thor:8003/v1`)
+- `nemotron35` -> NVIDIA Nemotron 3.5 Lightning 30B-A3B-NVFP4 (`http://thor:8004/v1`)
 - `classifier` -> `qwen3-routing-classifier` / kaitchup/Qwen3-1.7B-NVFP4 (`http://thor:8002/v1`)
 
 Architecture:
@@ -13,10 +15,10 @@ Open-WebUI -> LiteLLM Router (FastAPI + LiteLLM) -> local vLLM model endpoints
 ## Features
 
 - OpenAI-compatible endpoint: `POST /v1/chat/completions`
-- Model groups: `general`, `coder`
+- Model groups: `general`, `coder`, `qwen3.8`, `nemotron35`
 - Rule-based routing by coding keywords
 - Optional LLM classifier routing (`ENABLE_LLM_ROUTER=true`)
-- Explicit model routing for `general`, `coder`, and their upstream aliases
+- Explicit model routing for every exposed model and upstream alias
 - `classify` mode to force model-based routing from Hermes or another client
 - Dedicated Qwen3 1.7B NVFP4 classifier for model-based routing
 - Fallback chain:
@@ -82,14 +84,28 @@ If another client should call through this gateway, use it exactly like an OpenA
 Routing precedence is:
 
 1. Explicit `model` value `classify` forces the LLM classifier
-2. Explicit `model` value (`general`, `coder`, `qwen3.6`, or `qwen2.5-coder`)
+2. Explicit `model` value (`general`, `coder`, `qwen3.8`, `nemotron35`, or an upstream alias)
 3. Coding keyword match when `ENABLE_RULE_ROUTER=true`
 4. LLM classifier when `ENABLE_LLM_ROUTER=true`
 5. General model as the default
 
 In Hermes, select the OpenAI-compatible model `classify` when you want the
-router to decide between the general and coder backends. Select `general` or
-`coder` to force a direct mode.
+router to decide between the general and coder backends. Select `general`,
+`coder`, `qwen3.8`, or `nemotron35` to force a direct mode.
+
+## Disable Legacy Model Aliases
+
+The automatic router continues to use `general` and `coder` internally. To
+remove those aliases, or `classify`, from the public model list and prevent
+explicit selection, set the respective environment variables to `false`:
+
+```bash
+EXPOSE_GENERAL=false
+EXPOSE_CODER=false
+EXPOSE_CLASSIFIER=false
+```
+
+The direct models `qwen3.8` and `nemotron35` remain available.
 
 The configured fallback `coder -> general` is used only when the selected coder
 upstream request fails. It does not override explicit model selection.

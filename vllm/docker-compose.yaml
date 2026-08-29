@@ -298,7 +298,7 @@ services:
     ### https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4
     ### https://unsloth.ai/docs/models/qwen3.8
     vllm_qwen38_27b:
-        image: vllm/vllm-openai:v0.27.1-aarch64-ubuntu2404
+        image: vllm/vllm-openai:v0.28.0-aarch64-ubuntu2404
         container_name: vllm_qwen38_27b
         restart: unless-stopped
         pull_policy: always
@@ -346,7 +346,7 @@ services:
     ### https://www.jetson-ai-lab.com/models/nemotron3-5-lightning/
     ### https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
     vllm_nemotron35:
-        image: vllm/vllm-openai:v0.27.1-aarch64-ubuntu2404
+        image: vllm/vllm-openai:v0.28.0-aarch64-ubuntu2404
         container_name: vllm_nemotron35
         restart: unless-stopped
         pull_policy: always

@@ -1,3 +1,4 @@
 test/
 proxy/dynamic/test*.yaml
 .vscode/
+__pycache__/

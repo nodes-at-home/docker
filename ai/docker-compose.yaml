@@ -36,6 +36,7 @@ x-ollama_container: &ollama_container
       - OLLAMA_LOG_LEVEL=debug
       - OLLAMA_MODELS=/root/.ollama/models
       - JETSON_JETPACK=6
+      - OLLAMA_NUM_CTX=1024
     labels:
       - "traefik.enable=false"
     ports:

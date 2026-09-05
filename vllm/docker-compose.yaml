@@ -1,8 +1,5 @@
 ###
 ### junand 10.10.2025
-### containerized AI services for Nvidia Jetson AGX Thor 128GB
-
-# ai/docker-compose.yaml
 
 x-deploy_nvidia: &deploy_nvidia
     deploy:
@@ -16,98 +13,26 @@ x-deploy_nvidia: &deploy_nvidia
                       - utility
                       - compute
 
+networks:
+  proxy:
+    external: true
+  backbone:
+    external: true
+
+### https://www.jetson-ai-lab.com/models
+### https://www.jetson-ai-lab.com/tutorials/genai-on-jetson-llms-vlms
+
+### https://docs.vllm.ai/en/stable/deployment/docker
+### https://catalog.ngc.nvidia.com/orgs/nvidia/-/containers/vllm
+### https://docs.nvidia.com/deeplearning/frameworks/vllm-release-notes
+
+### https://github.com/orgs/NVIDIA-AI-IOT/packages
+
 services:
 
-    ollama-wsl2:
-        image: ${DOCKER_REGISTRY}dustynv/ollama:0.6.8-r36.4-cu126-22.04
-        container_name: ollama-wsl2
-        restart: unless-stopped
-        environment:
-          - TZ=Europe/Berlin
-          - OLLAMA_NO_CLOUD=1
-          - OLLAMA_LOG_LEVEL=debug
-          - OLLAMA_MODELS=/root/.ollama/models
-          - JETSON_JETPACK=6
-        labels:
-          - "traefik.enable=false"
-        volumes:
-          - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
-          - ~/docker/docker/ai/start_ollama_and_idle.sh:/opt/start_ollama_and_idle.sh
-        ports:
-          - "11434:11434"  # Standard-Port für die API
-        # entrypoint: ["/opt/start_ollama_and_idle.sh"]
-        runtime: nvidia
-        << : *deploy_nvidia
-
-    ollama-nano:
-        image: ${DOCKER_REGISTRY}dustynv/ollama:0.6.8-r36.4-cu126-22.04
-        container_name: ollama-nano
-        restart: unless-stopped
-        environment:
-          - TZ=Europe/Berlin
-          - OLLAMA_NO_CLOUD=1
-          - OLLAMA_LOG_LEVEL=debug
-          - OLLAMA_MODELS=/root/.ollama/models
-          - JETSON_JETPACK=6
-        labels:
-          - "traefik.enable=false"
-        volumes:
-          - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
-          - ~/docker/docker/ai/start_ollama_and_idle.sh:/opt/start_ollama_and_idle.sh
-        ports:
-          - "11434:11434"  # Standard-Port für die API
-        entrypoint: ["/opt/start_ollama_and_idle.sh"]
-        runtime: nvidia
-        << : *deploy_nvidia
-
-    ollama-thor:
-        image: ollama:r39.1.arm64-sbsa-cu132-24.04-ollama
-        container_name: ollama-thor
-        restart: unless-stopped
-        environment:
-          - TZ=Europe/Berlin
-          - OLLAMA_NO_CLOUD=1
-          - OLLAMA_LOG_LEVEL=debug
-          - OLLAMA_MODELS=/root/.ollama/models
-          - OLLAMA_MAX_LOADED_MODELS=5
-          - OLLAMA_FLASH_ATTENTION=1
-          - OLLAMA_KV_CACHE_TYPE=q8_0
-          - OLLAMA_NUM_PARALLEL=2
-          - OLLAMA_NUM_GPU_LAYERS=999
-        labels:
-          - "traefik.enable=false"
-        volumes:
-          - ~/docker/ollama:/root/.ollama  # Persistente Speicherung der Modelle
-          - ~/docker/docker/ai/start_ollama_and_idle.sh:/opt/start_ollama_and_idle.sh
-        ports:
-          - "11434:11434"  # Standard-Port für die API
-        entrypoint: ["/opt/start_ollama_and_idle.sh"]
-        # runtime: nvidia
-        # << : *deploy_nvidia
-
-    ### https://www.jetson-ai-lab.com/models/
-    ### https://docs.vllm.ai/en/stable/deployment/docker/
-
     ### https://huggingface.co/nvidia/Qwen3.6-27B-NVFP4
-    ### https://www.jetson-ai-lab.com/models/qwen3-6-27b/
-    ### https://catalog.ngc.nvidia.com/orgs/nvidia/-/containers/vllm/25.09-py3?_lr=1
-
     ### https://huggingface.co/sakamakismile/Qwen3.6-27B-NVFP4
-    ### https://catalog.ngc.nvidia.com/orgs/nvidia/-/containers/vllm/26.05.post1-py3/tags
-    ### https://docs.nvidia.com/deeplearning/frameworks/vllm-release-notes/rel-26-05.html#rel-26-05
     ### https://www.jetson-ai-lab.com/models/qwen3-6-27b/
-    ### https://www.jetson-ai-lab.com/tutorials/genai-on-jetson-llms-vlms/
-    ### https://github.com/orgs/NVIDIA-AI-IOT/packages
-
-    # images
-    #  >vllm/vllm-openai:v0.25.1-aarch64-ubuntu2404
-    #   nvcr.io/nvidia/vllm:26.05.post1-py3
-    #   ghcr.io/nvidia-ai-iot/vllm:0.19.0-r38.2.arm64-sbsa-cu130-24.04 -> passt nicht z r39
-    # models
-    #   sakamakismile/Qwen3.6-27B-NVFP4
-    #  >nvidia/Qwen3.6-27B-NVFP4
-    #   unsloth/qwen3.6-27b-nvfp4
-
     vllm_qwen36_27b:
         # image: vllm/vllm-openai:v0.26.0-aarch64-ubuntu2404
         image: vllm/vllm-openai:v0.25.1-aarch64-ubuntu2404
@@ -153,6 +78,8 @@ services:
             --dtype auto
         runtime: nvidia
         << : *deploy_nvidia
+        networks:
+          - backbone
 
     ### https://www.jetson-ai-lab.com/models/qwen3-6-35b-a3b/
     ### https://huggingface.co/RedHatAI/Qwen3.6-35B-A3B-NVFP4
@@ -207,6 +134,8 @@ services:
             --dtype auto
         runtime: nvidia
         << : *deploy_nvidia
+        networks:
+          - backbone
 
     ### https://huggingface.co/ilessio-aiflowlab/Qwen2.5-Coder-14B-Instruct-NVFP4-anima
     vllm_qwen25_14b_coder:
@@ -249,6 +178,8 @@ services:
             --dtype auto
         runtime: nvidia
         << : *deploy_nvidia
+        networks:
+          - backbone
 
     ### Dedicated routing classifier
     ### https://huggingface.co/kaitchup/Qwen3-1.7B-NVFP4
@@ -292,6 +223,8 @@ services:
             --dtype auto
         runtime: nvidia
         << : *deploy_nvidia
+        networks:
+          - backbone
 
     ### Qwen3.8 dense vision-language model with Unsloth Dynamic NVFP4
     ### Requires vLLM >= 0.25.0 and NVIDIA Blackwell (Jetson AGX Thor)
@@ -341,6 +274,8 @@ services:
             --dtype auto
         runtime: nvidia
         << : *deploy_nvidia
+        networks:
+          - backbone
 
     ### NVIDIA Nemotron 3.5 Lightning 30B-A3B with DSpark speculation
     ### https://www.jetson-ai-lab.com/models/nemotron3-5-lightning/
@@ -393,6 +328,8 @@ services:
             --dtype auto
         runtime: nvidia
         << : *deploy_nvidia
+        networks:
+          - backbone
 
     litellm_router:
         image: python:3.12-slim
@@ -437,7 +374,9 @@ services:
           - EXPOSE_CLASSIFIER=${EXPOSE_CLASSIFIER:-false}
           - ROUTER_KEYWORDS=${ROUTER_KEYWORDS:-}
         labels:
-          - "traefik.enable=false"
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
         volumes:
           - ~/docker/docker/vllm/litellm-gateway/router.py:/app/router.py:ro
           - ~/docker/docker/vllm/litellm-gateway/requirements.txt:/app/requirements.txt:ro
@@ -446,8 +385,13 @@ services:
         command: >-
           sh -c "pip install --no-cache-dir -r /app/requirements.txt &&
           uvicorn router:app --host 0.0.0.0 --port 4000"
+        expose:
+          - "4000"
         ports:
           - 4000:4000
+        networks:
+          - proxy
+          - backbone
         healthcheck:
           test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/healthz', timeout=5)\""]
           interval: 20s

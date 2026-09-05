@@ -109,8 +109,9 @@ http:
             ipAllowList:
                 sourceRange:
                   # - 0.0.0.0/0         # no restriction (necessary for docker for windows under wsl2)
-                  - 192.168.130.0/24
                   - 192.168.10.0/24
+                  - 192.168.110.0/24
+                  - 192.168.130.0/24
         qwen38-strip-prefix:
             stripPrefix:
                 prefixes:

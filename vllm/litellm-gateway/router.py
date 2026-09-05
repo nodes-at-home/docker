@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -205,6 +206,8 @@ audit_enabled = parse_bool(os.getenv("LLM_AUDIT_LOG", "false"), False)
 audit_path = os.getenv("LLM_AUDIT_LOG_PATH", "/app/logs/llm-requests.jsonl")
 audit_max_chars = int(os.getenv("LLM_AUDIT_LOG_MAX_CHARS", "100000"))
 audit_max_bytes = int(os.getenv("LLM_AUDIT_LOG_MAX_BYTES", "52428800"))
+MODELS_CACHE_TTL_SEC = int(os.getenv("MODELS_CACHE_TTL_SEC", "3600"))
+MODELS_INFO_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 
 
 def audit_safe(value: Any) -> Any:
@@ -474,28 +477,68 @@ async def metrics() -> PlainTextResponse:
     return PlainTextResponse(generate_latest().decode("utf-8"), media_type=CONTENT_TYPE_LATEST)
 
 
+async def fetch_upstream_model_info(group: str, target: ModelTarget) -> dict[str, Any] | None:
+    cached = MODELS_INFO_CACHE.get(group)
+    if cached and time.monotonic() - cached[0] < MODELS_CACHE_TTL_SEC:
+        return cached[1]
+
+    expected_model = target.model.split("/", 1)[-1]
+    models_url = f"{target.api_base.rstrip('/')}/models"
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(models_url, headers={"Authorization": f"Bearer {target.api_key}"})
+            response.raise_for_status()
+            for item in response.json().get("data", []):
+                if isinstance(item, dict) and item.get("id") == expected_model:
+                    MODELS_INFO_CACHE[group] = (time.monotonic(), item)
+                    return item
+    except Exception as exc:
+        log_event("models_upstream_error", group=group, error=str(exc))
+    return None
+
+
+def build_model_entry(exposed_id: str, upstream_info: dict[str, Any] | None) -> dict[str, Any]:
+    # keep upstream fields (created, max_model_len, permission, ...) but expose our alias as id
+    entry = dict(upstream_info) if upstream_info else {"object": "model", "owned_by": "local"}
+    entry["id"] = exposed_id
+    return entry
+
+
+def exposed_model_groups() -> list[tuple[str, str, ModelTarget]]:
+    groups: list[tuple[str, str, ModelTarget]] = []
+    if settings.expose_general:
+        groups.append((settings.exposed_general_name, "general", settings.model_groups["general"]))
+    if settings.expose_coder:
+        groups.append((settings.exposed_coder_name, "coder", settings.model_groups["coder"]))
+    for group, target in settings.model_groups.items():
+        if group not in {"general", "coder"}:
+            groups.append((group, group, target))
+    if settings.expose_classifier:
+        groups.append((settings.exposed_classifier_name, "classifier", settings.classifier_target))
+    return groups
+
+
+@app.on_event("startup")
+async def warm_models_cache() -> None:
+    groups = exposed_model_groups()
+    await asyncio.gather(
+        *(fetch_upstream_model_info(cache_key, target) for _, cache_key, target in groups)
+    )
+
+
 @app.get("/v1/models")
 async def v1_models() -> dict[str, Any]:
-    routed_models = []
-    if settings.expose_general:
-        routed_models.append({"id": settings.exposed_general_name, "object": "model", "owned_by": "local"})
-    if settings.expose_coder:
-        routed_models.append({"id": settings.exposed_coder_name, "object": "model", "owned_by": "local"})
-    direct_models = [
-        {"id": group, "object": "model", "owned_by": "local"}
-        for group in settings.model_groups
-        if group not in {"general", "coder"}
-    ]
+    groups = exposed_model_groups()
+
+    upstream_infos = await asyncio.gather(
+        *(fetch_upstream_model_info(cache_key, target) for _, cache_key, target in groups)
+    )
+
     return {
         "object": "list",
         "data": [
-            *routed_models,
-            *direct_models,
-            *(
-                [{"id": settings.exposed_classifier_name, "object": "model", "owned_by": "local"}]
-                if settings.expose_classifier
-                else []
-            ),
+            build_model_entry(exposed_id, info)
+            for (exposed_id, _, _), info in zip(groups, upstream_infos)
         ],
     }
 

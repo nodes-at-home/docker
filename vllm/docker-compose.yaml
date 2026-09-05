@@ -296,7 +296,7 @@ services:
         shm_size: '16gb'
         expose:
           - 8000
-       healthcheck:
+        healthcheck:
             test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8000/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
             interval: 20s
             timeout: 5s

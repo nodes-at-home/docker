@@ -244,10 +244,10 @@ services:
           - ~/docker/vllm/models:/root/.cache/huggingface
           - ~/docker/vllm/cache/qwen38_27b:/root/.cache/vllm
         shm_size: '16gb'
-        ports:
-          - 8003:8003
+        expose:
+          - 8000
         healthcheck:
-            test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8003/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
+            test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8000 /v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
             interval: 20s
             timeout: 5s
             retries: 10
@@ -257,7 +257,7 @@ services:
           - >-
             exec vllm serve unsloth/Qwen3.8-27B-NVFP4
             --served-model-name qwen3.8
-            --port 8003
+            --port 8000
             --kv-cache-dtype fp8
             --gpu-memory-utilization 0.5
             --max-model-len 262144
@@ -294,10 +294,10 @@ services:
           - ~/docker/vllm/models:/root/.cache/huggingface
           - ~/docker/vllm/cache/nemotron35:/root/.cache/vllm
         shm_size: '16gb'
-        ports:
-          - 8004:8004
-        healthcheck:
-            test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8004/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
+        expose:
+          - 8000
+       healthcheck:
+            test: ["CMD-SHELL", "python3 -c \"import json,sys,urllib.request; d=json.load(urllib.request.urlopen('http://127.0.0.1:8000/v1/models', timeout=5)); sys.exit(0 if isinstance(d, dict) and 'data' in d else 1)\" >/dev/null 2>&1 || exit 1"]
             interval: 20s
             timeout: 5s
             retries: 10
@@ -307,7 +307,7 @@ services:
           - >-
             exec vllm serve nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
             --served-model-name nemotron35
-            --port 8004
+            --port 8000
             --reasoning-parser nemotron_v3
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
@@ -361,10 +361,10 @@ services:
           - CODER_API_BASE=${CODER_API_BASE:-http://vllm_qwen25_14b_coder:8001/v1}
           - CODER_API_KEY=${CODER_API_KEY:-sk-local}
           - QWEN38_MODEL=${QWEN38_MODEL:-openai/qwen3.8}
-          - QWEN38_API_BASE=${QWEN38_API_BASE:-http://vllm_qwen38_27b:8003/v1}
+          - QWEN38_API_BASE=${QWEN38_API_BASE:-http://vllm_qwen38_27b:8000/v1}
           - QWEN38_API_KEY=${QWEN38_API_KEY:-sk-local}
           - NEMOTRON35_MODEL=${NEMOTRON35_MODEL:-openai/nemotron35}
-          - NEMOTRON35_API_BASE=${NEMOTRON35_API_BASE:-http://vllm_nemotron35:8004/v1}
+          - NEMOTRON35_API_BASE=${NEMOTRON35_API_BASE:-http://vllm_nemotron35:8000/v1}
           - NEMOTRON35_API_KEY=${NEMOTRON35_API_KEY:-sk-local}
           - EXPOSED_GENERAL_NAME=${EXPOSED_GENERAL_NAME:-general}
           - EXPOSED_CODER_NAME=${EXPOSED_CODER_NAME:-coder}
@@ -387,8 +387,6 @@ services:
           uvicorn router:app --host 0.0.0.0 --port 4000"
         expose:
           - "4000"
-        ports:
-          - 4000:4000
         networks:
           - proxy
           - backbone

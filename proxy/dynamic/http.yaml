@@ -1,0 +1,135 @@
+###
+### junand 14.03.2020
+###
+
+http:
+
+    routers:
+
+        web_redirect:
+            entryPoints:
+              - 'web'
+            rule: 'HostRegexp(`{any:.*}`)'
+            middlewares:
+              - web-redirect
+              # - hsts-header
+            service: redirect-all
+
+        api:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && ( PathPrefix(`/api`) || PathPrefix(`/dashboard`) )'
+            service: api@internal
+            middlewares:
+              - pokemonnet
+            tls:
+                options: intermediate
+
+        qwen38-metrics:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/qwen38/metrics`)'
+            middlewares:
+              - qwen38-strip-prefix
+              - pokemonnet
+              # - hsts-header
+            service: qwen38-metrics
+            tls:
+                options: intermediate
+
+        nemotron35-metrics:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/nemotron35/metrics`)'
+            middlewares:
+              - nemotron35-strip-prefix
+              - pokemonnet
+              # - hsts-header
+            service: nemotron35-metrics
+            tls:
+                options: intermediate
+
+        whoami:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/whoami`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: whoami-proxy@docker
+            tls:
+                options: intermediate
+
+        registry:
+            entryPoints:
+              - 'registry_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) || Host ( "localhost" ) )'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: registry-admin@docker
+            tls:
+                options: intermediate
+
+        vscode:
+            entryPoints:
+              - 'web_secure'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) ) && PathPrefix(`/vscode`)'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: vscode-admin@docker
+            tls:
+                options: intermediate
+
+        litellm:
+            entryPoints:
+              - 'litellm'
+            rule: '( Host(`{{ env "PARENT_HOSTNAME" }}`) || Host ( "localhost" ) )'
+            middlewares:
+              - pokemonnet
+              # - hsts-header
+            service: litellm-router-vllm@docker
+            tls:
+                options: intermediate
+
+    middlewares:
+        stripprefix:
+            stripPrefix:
+                prefixes:
+                  - '/registry'
+        web-redirect:
+            redirectScheme:
+                scheme: https
+        # hsts-header:
+            # headers:
+                # customResponseHeader:
+                    # Strict-Transport-Security: "max-age=63072000"
+        pokemonnet:
+            ipAllowList:
+                sourceRange:
+                  # - 0.0.0.0/0         # no restriction (necessary for docker for windows under wsl2)
+                  - 192.168.130.0/24
+                  - 192.168.10.0/24
+        qwen38-strip-prefix:
+            stripPrefix:
+                prefixes:
+                  - '/qwen38'
+        nemotron35-strip-prefix:
+            stripPrefix:
+                prefixes:
+                  - '/nemotron35'
+
+    services:
+        redirect-all:
+            loadBalancer:
+                servers:
+                  - url: ''
+        qwen38-metrics:
+            loadBalancer:
+                servers:
+                  - url: 'http://vllm_qwen38_27b:8000'
+        nemotron35-metrics:
+            loadBalancer:
+                servers:
+                  - url: 'http://vllm_nemotron35:8000'

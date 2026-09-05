@@ -1,0 +1,31 @@
+###
+### junand 25.08.2020
+###
+
+volumes:
+    portainer_data:
+
+networks:
+    admin:
+        external: true
+
+services:
+
+    ### free business license for 5 nodes
+    portainer:
+        # image: portainer/portainer-ce
+        image: portainer/portainer-ee:latest
+        # image: portainer/portainer-ee:2.15.0
+        container_name: portainer
+        restart: always
+        environment:
+          - TZ=Europe/Berlin
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - portainer_data:/data
+          - "~/docker/traefik/ssl:/etc/ssl/nodesathome"
+        command: --sslkey /etc/ssl/nodesathome/certificate-key-${HOSTNAME}.pem --sslcert /etc/ssl/nodesathome/certificate-pub-${HOSTNAME}.pem --sslcacert /etc/ssl/nodesathome/ca-root-nodesathome.pem
+        ports:
+          - 9443:9443
+        networks:
+          - admin

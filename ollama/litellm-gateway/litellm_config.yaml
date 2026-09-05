@@ -1,0 +1,67 @@
+model_groups:
+  general:
+    model: "openai/qwen3.6"
+    api_base: "${GENERAL_API_BASE}"
+    api_key: "${GENERAL_API_KEY}"
+  coder:
+    model: "openai/qwen2.5-coder"
+    api_base: "${CODER_API_BASE}"
+    api_key: "${CODER_API_KEY}"
+  qwen3.8:
+    model: "openai/qwen3.8"
+    api_base: "${QWEN38_API_BASE}"
+    api_key: "${QWEN38_API_KEY}"
+  nemotron35:
+    model: "openai/nemotron35"
+    api_base: "${NEMOTRON35_API_BASE}"
+    api_key: "${NEMOTRON35_API_KEY}"
+
+classifier:
+  model: "openai/qwen3-routing-classifier"
+  api_base: "${CLASSIFIER_API_BASE}"
+  api_key: "${CLASSIFIER_API_KEY}"
+
+fallbacks:
+  coder: "general"
+  general: "general"
+
+routing:
+  enable_llm_router: "${ENABLE_LLM_ROUTER}"
+  llm_classifier_prompt: |
+    Choose one label and return only it: GENERAL or CODING.
+    GENERAL means normal knowledge or explanation, translation, summary, or
+    everyday questions.
+    CODING means writing code, debugging Docker, configuring a server, or
+    implementing software.
+    Examples: why is the sky blue = GENERAL; write Python = CODING;
+    configure an OpenAI endpoint = CODING.
+    Request: {{prompt}}
+  keyword_list:
+    - python
+    - bash
+    - shell
+    - docker
+    - dockerfile
+    - kubernetes
+    - sql
+    - regex
+    - typescript
+    - javascript
+    - nodejs
+    - golang
+    - rust
+    - c++
+    - c#
+    - java
+    - debug
+    - bug
+    - refactor
+    - unit test
+    - integration test
+    - api design
+    - git
+    - github
+    - gitlab
+    - pull request
+    - cuda
+    - lua

@@ -1,0 +1,54 @@
+###
+### junand 11.03.2020
+###
+
+# proxy/docker-compose.yaml
+
+networks:
+    proxy:
+        external: true
+    metrics:
+        external: true
+    backbone:
+        external: true
+
+services:
+
+    traefik:
+        image: ${DOCKER_REGISTRY}traefik
+        container_name: traefik
+        restart: ${DOCKER_RESTART_POLICY}
+        environment:
+          - TZ=Europe/Berlin
+          - PARENT_HOSTNAME=${HOSTNAME}
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - "~/docker/docker/proxy/traefik.yaml:/etc/traefik/traefik.yml"
+          - "~/docker/docker/proxy/dynamic:/etc/traefik/dynamic"
+          - "~/docker/traefik/ssl:/etc/ssl/nodesathome"
+        ports:
+          - "80:80"             # http
+          - "443:443"           # htpps
+          - "3493:3493"         # upsd
+          - "4000:4000"         # litellm router
+          - "5000:5000"         # private docker registry secure
+        networks:
+          - proxy
+          - metrics
+          - backbone
+
+    whoami:
+        # a container that exposes an API to show its IP address
+        image: ${DOCKER_REGISTRY}containous/whoami
+        container_name: whoami
+        restart: ${DOCKER_RESTART_POLICY}
+        depends_on:
+          - traefik
+        environment:
+          - TZ=Europe/Berlin
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dontuse.entrypoints=dontuse"
+          - "traefik.docker.network=proxy"
+        networks:
+          - proxy

@@ -1,0 +1,13 @@
+###
+### junand 14.03.2020
+###
+
+tcp:
+
+    routers:
+
+        upsd:
+            entryPoints:
+              - 'upsd'
+            rule: HostSNI(`*`)
+            service: upsd-admin@docker

@@ -128,3 +128,58 @@ services:
 
     piper-wsl2:
         << : [*piper_wsl2, *piper_container]
+
+    hermes-tts:
+        build:
+            context: .
+            dockerfile: Dockerfile.tts
+        image: hermes-speech-tts:latest
+        container_name: hermes-tts
+        restart: unless-stopped
+        environment:
+          - TZ=Europe/Berlin
+          - PIPER_VOICE=de_DE-thorsten-high
+          - PIPER_CUDA=true
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/piper/data/models/piper:/data/models/piper:ro  # Piper-Voices (HA-Stack teilt)
+        ports:
+          - "10210:8000"
+        healthcheck:
+            test: ["CMD", "python3", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=5)"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 45s
+        runtime: nvidia
+        << : *deploy_nvidia
+
+    hermes-stt:
+        build:
+            context: .
+            dockerfile: Dockerfile.stt
+        image: hermes-speech-stt:latest
+        container_name: hermes-stt
+        restart: unless-stopped
+        environment:
+          - TZ=Europe/Berlin
+          - WHISPER_MODEL=large-v3
+          - WHISPER_COMPUTE=float16
+          - WHISPER_LANG=de
+          - WHISPER_BEAM=5
+          - WHISPER_MODEL_ROOT=/data
+        labels:
+          - "traefik.enable=false"
+        volumes:
+          - ~/docker/whisper/data:/data  # HF-Hub-Cache mit large-v3 (2,9 GB, HA-Stack teilt)
+        ports:
+          - "10310:8000"
+        healthcheck:
+            test: ["CMD", "python3", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=5)"]
+            interval: 30s
+            timeout: 10s
+            retries: 10
+            start_period: 180s  # Modell-Load auf GPU dauert
+        runtime: nvidia
+        << : *deploy_nvidia

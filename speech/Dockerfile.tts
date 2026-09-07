@@ -1,0 +1,25 @@
+# hermes-tts: OpenAI-kompatibler Piper-TTS-Server (dustynv/piper-tts als Basis)
+# Basis: dustynv/piper-tts:r36.4.0-cu128-24.04 (JetPack 6 / CUDA 12.8 / aarch64,
+#        enthält piper 1.2.0 + onnxruntime-gpu)
+FROM dustynv/piper-tts:r36.4.0-cu128-24.04
+
+# ffmpeg für response_format=mp3/opus (Hermes konvertiert ansonsten selbst)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Web-Server + Multipart-Parsing (openai-SDK sendet multipart/form-data).
+# --index-url: Basis-Image zeigt pip auf jetson.webredirect.org (keine Web-Pakete),
+# daher explizit PyPI — fastapi/uvicorn/multipart sind reine Python-Pakete.
+RUN pip install --no-cache-dir --index-url https://pypi.org/simple \
+        "fastapi" "uvicorn[standard]" "python-multipart"
+
+COPY tts_server.py /opt/hermes-speech/tts_server.py
+
+ENV PIPER_DATA_DIR=/data/models/piper \
+    PIPER_VOICE=de_DE-thorsten-high \
+    PIPER_CUDA=true \
+    PORT=8000
+
+EXPOSE 8000
+CMD ["python3", "/opt/hermes-speech/tts_server.py"]

@@ -1,0 +1,28 @@
+# hermes-stt: OpenAI-kompatibler Whisper-STT-Server (dustynv/faster-whisper als Basis)
+# Basis: dustynv/faster-whisper:r36.4.0-cu128-24.04 (JetPack 6 / CUDA 12.8 / aarch64,
+#        enthält faster-whisper + CUDA-Toolchain)
+FROM dustynv/faster-whisper:r36.4.0-cu128-24.04
+
+# ffmpeg als Fallback-Dekoder für exotische Audio-Container
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Web-Server + Multipart-Parsing.
+# --index-url: Basis-Image zeigt pip auf jetson.webredirect.org (keine Web-Pakete),
+# daher explizit PyPI — fastapi/uvicorn/multipart sind reine Python-Pakete.
+RUN pip install --no-cache-dir --index-url https://pypi.org/simple \
+        "fastapi" "uvicorn[standard]" "python-multipart"
+
+COPY stt_server.py /opt/hermes-speech/stt_server.py
+
+ENV WHISPER_MODEL=large-v3 \
+    WHISPER_DEVICE=auto \
+    WHISPER_COMPUTE=float16 \
+    WHISPER_LANG=de \
+    WHISPER_BEAM=5 \
+    WHISPER_MODEL_ROOT=/data \
+    PORT=8000
+
+EXPOSE 8000
+CMD ["python3", "/opt/hermes-speech/stt_server.py"]
